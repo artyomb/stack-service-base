@@ -1,0 +1,22 @@
+PATH
+  remote: .
+  specs:
+    stack-service-base (0.0.1)
+      prometheus-client
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    base64 (0.2.0)
+    prometheus-client (4.2.4)
+      base64
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  stack-service-base!
+
+BUNDLED WITH
+   2.5.17

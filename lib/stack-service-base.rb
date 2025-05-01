@@ -1,0 +1,15 @@
+module StackServiceBase
+  class << self
+    def rack_setup app
+      app.instance_eval do
+        if ENV.fetch('PROMETHEUS_METRICS_EXPORT', 'true') == 'true'
+          require 'stack-service-base/prometheus'
+
+          # use Rack::Deflater
+          use Prometheus::Middleware::Collector
+          use Prometheus::Middleware::Exporter
+        end
+      end
+    end
+  end
+end
