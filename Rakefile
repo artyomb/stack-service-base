@@ -31,13 +31,14 @@ desc 'Pre commit'
 task commit: %i[spec readme]
 
 desc 'Build'
-task build: %i[spec readme] do |t|
+task build: %i[readme] do |t|
   puts 'Build'
-  system 'gem build stack-service-base.gemspec' or exit 1
+  gemspec = Dir['*.gemspec'].first
+  system "gem build #{gemspec}" or exit 1
 end
 
 desc 'Build&push new version'
-task push: %i[ ] do |t|
+task push: %i[readme] do |t|
   puts 'Build&push new version'
   gemspec = Dir['*.gemspec'].first
   system "gem build #{gemspec}" or exit 1
