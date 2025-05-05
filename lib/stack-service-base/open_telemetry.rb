@@ -52,8 +52,8 @@ if defined? LOGGER and OTEL_ENABLED
   OpenTelemetry.logger = LOGGER
 end
 
-def otel_initialize
-  $stderr.puts "otl_configure: OTEL_ENABLED: #{OTEL_ENABLED}"
+def otel_initialize(app)
+  $stdout.puts "otl_configure: OTEL_ENABLED: #{OTEL_ENABLED}"
   return unless OTEL_ENABLED
 
   OpenTelemetry::SDK.configure do |c|
@@ -89,6 +89,7 @@ def otel_initialize
     # span.status = OpenTelemetry::Trace::Status.error("error message here!")
   end
 
+  app.use OTELTraceInfo
 end
 
 if defined? Sequel and OTEL_ENABLED

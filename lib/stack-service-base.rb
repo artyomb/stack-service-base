@@ -1,3 +1,5 @@
+require 'stack-service-base/logging'
+require 'stack-service-base/rack_helpers'
 require 'stack-service-base/open_telemetry'
 
 module StackServiceBase
@@ -8,6 +10,7 @@ module StackServiceBase
       return unless app.respond_to? :use
 
       app.instance_eval do
+        RackHelpers.rack_setup app
         if ENV.fetch('PROMETHEUS_METRICS_EXPORT', 'true') == 'true'
           require 'stack-service-base/prometheus'
 
@@ -17,8 +20,7 @@ module StackServiceBase
         end
 
         if OTEL_ENABLED
-          otel_initialize
-
+          otel_initialize app
         end
 
       end
