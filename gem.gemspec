@@ -12,6 +12,9 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= " + File.read(File.dirname(__FILE__)+'/.ruby-version').strip
 
   s.add_dependency 'prometheus-client'
+  s.add_dependency 'opentelemetry-sdk'
+  s.add_dependency 'opentelemetry-exporter-otlp'
+  s.add_dependency 'opentelemetry-instrumentation-all'
 
   s.add_development_dependency "rake", "~> 13.0"
   s.add_development_dependency "rspec", "~> 3.10"

@@ -1,3 +1,5 @@
+require 'stack-service-base/open_telemetry'
+
 module StackServiceBase
   class << self
     def rack_setup app
@@ -13,6 +15,12 @@ module StackServiceBase
           use Prometheus::Middleware::Collector
           use Prometheus::Middleware::Exporter
         end
+
+        if OTEL_ENABLED
+          otel_initialize
+
+        end
+
       end
     end
   end
