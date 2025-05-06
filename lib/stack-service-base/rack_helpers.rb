@@ -72,16 +72,15 @@ module RackHelpers
     [status, headers, body]
   end
 
+  # use RackHelpers::RequestsLimiter, limit: 1, path_regex: %r{^(?!.*healthcheck)}
   Rack.define_middleware :RequestsLimiter do |env, app, opts|
+    @path_regex ||= opts[0][:path_regex] || %r{.*}
     @sem ||= Async::Semaphore.new(opts[0][:limit] || 5 )
 
-    if @sem.blocking?
-      [429, { 'Content-Type' => 'text/plain', 'Retry-After' => '1' }, ['Too Many Requests']]
-    else
-      @sem.acquire {
-        app.call(env)
-      }
-    end
+    next app.call(env) unless env['PATH_INFO'] =~ @path_regex
+    next [429, { 'Content-Type' => 'text/plain', 'Retry-After' => '1' }, ['Too Many Requests']] if @sem.blocking?
+
+    @sem.acquire { app.call env }
   end
 
   # PATCH: for the Grape
