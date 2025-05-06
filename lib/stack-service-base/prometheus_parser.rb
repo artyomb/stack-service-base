@@ -40,54 +40,56 @@ module PrometheusParser
   end
 end
 
-metrics_text = <<~METRICS
-  # TYPE http_server_requests_total counter
-  # HELP http_server_requests_total The total number of HTTP requests handled by the Rack application.
-  http_server_requests_total{code="200",method="get",path="/"} 5.0
-  http_server_requests_total{code="200",method="get",path="/metrics"} 18.0
-  # TYPE http_server_request_duration_seconds histogram
-  # HELP http_server_request_duration_seconds The HTTP response duration of the Rack application.
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="0.005"} 0.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="0.01"} 0.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="0.025"} 0.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="0.05"} 4.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="0.1"} 5.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="0.25"} 5.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="0.5"} 5.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="1"} 5.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="2.5"} 5.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="5"} 5.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="10"} 5.0
-  http_server_request_duration_seconds_bucket{method="get",path="/",le="+Inf"} 5.0
-  http_server_request_duration_seconds_sum{method="get",path="/"} 0.1885649065952748
-  http_server_request_duration_seconds_count{method="get",path="/"} 5.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.005"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.01"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.025"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.05"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.1"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.25"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.5"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="1"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="2.5"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="5"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="10"} 18.0
-  http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="+Inf"} 18.0
-  http_server_request_duration_seconds_sum{method="get",path="/metrics"} 0.012181486235931516
-  http_server_request_duration_seconds_count{method="get",path="/metrics"} 18.0
-  # TYPE http_server_exceptions_total counter
-  # HELP http_server_exceptions_total The total number of exceptions raised by the Rack application.
-METRICS
+if __FILE__ == $0
+  metrics_text = <<~METRICS
+    # TYPE http_server_requests_total counter
+    # HELP http_server_requests_total The total number of HTTP requests handled by the Rack application.
+    http_server_requests_total{code="200",method="get",path="/"} 5.0
+    http_server_requests_total{code="200",method="get",path="/metrics"} 18.0
+    # TYPE http_server_request_duration_seconds histogram
+    # HELP http_server_request_duration_seconds The HTTP response duration of the Rack application.
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="0.005"} 0.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="0.01"} 0.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="0.025"} 0.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="0.05"} 4.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="0.1"} 5.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="0.25"} 5.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="0.5"} 5.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="1"} 5.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="2.5"} 5.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="5"} 5.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="10"} 5.0
+    http_server_request_duration_seconds_bucket{method="get",path="/",le="+Inf"} 5.0
+    http_server_request_duration_seconds_sum{method="get",path="/"} 0.1885649065952748
+    http_server_request_duration_seconds_count{method="get",path="/"} 5.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.005"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.01"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.025"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.05"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.1"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.25"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="0.5"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="1"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="2.5"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="5"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="10"} 18.0
+    http_server_request_duration_seconds_bucket{method="get",path="/metrics",le="+Inf"} 18.0
+    http_server_request_duration_seconds_sum{method="get",path="/metrics"} 0.012181486235931516
+    http_server_request_duration_seconds_count{method="get",path="/metrics"} 18.0
+    # TYPE http_server_exceptions_total counter
+    # HELP http_server_exceptions_total The total number of exceptions raised by the Rack application.
+  METRICS
 
-metrics = PrometheusParser::parse_metrics metrics_text
+  metrics = PrometheusParser::parse_metrics metrics_text
 
-# Print the parsed metrics
-metrics.each do |name, data|
-  puts "Metric: #{name}"
-  puts "Description: #{data[:help]}"
-  puts "Type: #{data[:type]}"
-  data[:series].each do |series|
-    puts "    #{series} "
+  # Print the parsed metrics
+  metrics.each do |name, data|
+    puts "Metric: #{name}"
+    puts "Description: #{data[:help]}"
+    puts "Type: #{data[:type]}"
+    data[:series].each do |series|
+      puts "    #{series} "
+    end
+    puts
   end
-  puts
 end

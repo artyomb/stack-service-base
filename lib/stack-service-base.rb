@@ -20,7 +20,7 @@ module StackServiceBase
         end
 
         if OTEL_ENABLED
-          otel_initialize app
+          otel_initialize
         end
 
       end

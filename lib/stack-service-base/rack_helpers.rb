@@ -7,7 +7,7 @@ module RackHelpers
   end
 
   def Rack.define_middleware(name, &block)
-    Object.const_set name, Rack.middleware_klass(&block)
+    RackHelpers.const_set name, Rack.middleware_klass(&block)
   end
 
   Rack.define_middleware :Authentication do |env, app|
@@ -166,7 +166,7 @@ module RackHelpers
         use OpenTelemetry::Instrumentation::Rack::Middlewares::TracerMiddleware
       end
       app.use Rack::Deflater
-      app.use OTELTraceInfo
+      app.use OTELTraceInfo if defined? OpenTelemetry::Trace
 
       unless defined?(PERFORMANCE) && PERFORMANCE
         app.use RequestProfile
