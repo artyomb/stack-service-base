@@ -72,6 +72,18 @@ module RackHelpers
     [status, headers, body]
   end
 
+  Rack.define_middleware :RequestsLimiter do |env, app, opts|
+    @sem ||= Async::Semaphore.new(opts[0][:limit] || 5 )
+
+    if @sem.blocking?
+      [429, { 'Content-Type' => 'text/plain', 'Retry-After' => '1' }, ['Too Many Requests']]
+    else
+      @sem.acquire {
+        app.call(env)
+      }
+    end
+  end
+
   # PATCH: for the Grape
   class Rack::Lint::Wrapper::InputWrapper
     def rewind = @input.rewind
@@ -100,10 +112,12 @@ module RackHelpers
     if status.to_i / 100 == 5
       _body = body.to_s # each(&:to_s).join
       LOGGER.error [status, headers, _body]
-      OpenTelemetry::Trace.current_span.tap do |span|
-        event_attributes = { 'exception.type' => "HTTP #{status.to_i}", 'exception.message' => _body, 'exception.stacktrace' => '' }
-        span.add_event('exception', attributes: event_attributes)
-        span.status = OpenTelemetry::Trace::Status.error("Request error: #{status.to_i}")
+      if defined? OpenTelemetry::Trace
+        OpenTelemetry::Trace.current_span.tap do |span|
+          event_attributes = { 'exception.type' => "HTTP #{status.to_i}", 'exception.message' => _body, 'exception.stacktrace' => '' }
+          span.add_event('exception', attributes: event_attributes)
+          span.status = OpenTelemetry::Trace::Status.error("Request error: #{status.to_i}")
+        end
       end
     end
 
