@@ -21,7 +21,8 @@ if OTEL_ENABLED
   require 'opentelemetry-api'
 end
 
-if defined? Async::Task and OTEL_ENABLED
+if defined? Async and OTEL_ENABLED
+  require 'async'
   module AsyncTaskOTELPatch
     def initialize(parent = Task.current?, finished: nil, **options, &block)
       ctx_ = OpenTelemetry::Context.current
