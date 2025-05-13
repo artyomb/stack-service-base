@@ -58,8 +58,11 @@ def otel_initialize
   return unless OTEL_ENABLED
 
   OpenTelemetry::SDK.configure do |c|
+    c.use_all({
+      'OpenTelemetry::Instrumentation::Sinatra' => { install_rack: false },
+      'OpenTelemetry::Instrumentation::Rack' => { url_quantization: ->(path, env) { "HTTP #{env['REQUEST_METHOD']} #{path}" } }
+    })
     # c.service_name = SERVICE_NAME
-    c.use_all # enables all instrumentation!
   end
 
   at_exit do
@@ -136,12 +139,6 @@ def otl_def(name)
       original_method.bind(self).call(*args, **kwargs, &block)
     end
   end
-end
-
-if defined?  OpenTelemetry::Instrumentation::Rack::Middlewares
-  OpenTelemetry::Instrumentation::Rack::Middlewares::TracerMiddleware.config[:url_quantization] = ->(path, env) {
-    "HTTP #{env['REQUEST_METHOD']} #{path}"
-  }
 end
 
 if OTEL_ENABLED
