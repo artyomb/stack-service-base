@@ -5,6 +5,7 @@ QUIET = ENV.fetch('CONSOLE_LEVEL', 'false') == 'true'
 PERFORMANCE = ENV.fetch('PERFORMANCE', 'false') == 'true'
 
 ENV['CONSOLE_LEVEL'] ||= 'all' unless QUIET || PERFORMANCE
+# ENV['CONSOLE_OUTPUT'] ||= 'XTerm' # JSON,Text,XTerm,Default
 
 CONSOLE_LOGGER = Class.new {
   def <<(...) = Console.logger.info(...)

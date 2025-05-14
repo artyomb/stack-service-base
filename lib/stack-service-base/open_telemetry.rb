@@ -1,3 +1,5 @@
+require 'async'
+
 ENV['OTEL_LOG_LEVEL'] ||= 'debug'
 ENV['OTEL_TRACES_EXPORTER'] ||= 'console,otlp'
 
@@ -22,7 +24,6 @@ if OTEL_ENABLED
 end
 
 if defined? Async and OTEL_ENABLED
-  require 'async'
   module AsyncTaskOTELPatch
     def initialize(parent = Task.current?, finished: nil, **options, &block)
       ctx_ = OpenTelemetry::Context.current
@@ -58,9 +59,15 @@ def otel_initialize
   return unless OTEL_ENABLED
 
   OpenTelemetry::SDK.configure do |c|
+    OpenTelemetry::Instrumentation::Rack
     c.use_all({
-      'OpenTelemetry::Instrumentation::Sinatra' => { install_rack: false },
-      'OpenTelemetry::Instrumentation::Rack' => { url_quantization: ->(path, env) { "HTTP #{env['REQUEST_METHOD']} #{path}" } }
+      'OpenTelemetry::Instrumentation::Sinatra' => { install_rack: true },
+      'OpenTelemetry::Instrumentation::Rack' => {
+        use_rack_events: false, # TODO: doesnt work with Websoker requests
+        # /home/user/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/opentelemetry-instrumentation-rack-0.26.0/lib/opentelemetry/instrumentation/rack/instrumentation.rb#43
+        url_quantization: ->(path, env) { "HTTP #{env['REQUEST_METHOD']} #{path}" },
+        untraced_requests: ->(env) { env['HTTP_UPGRADE'] == 'websocket' }
+      }
     })
     # c.service_name = SERVICE_NAME
   end
@@ -126,6 +133,16 @@ end
 def otl_current_span
   return unless OTEL_ENABLED
   yield OpenTelemetry::Trace.current_span
+end
+
+def otl_traceparent_id
+    return nil unless OTEL_ENABLED
+
+    span_context = OpenTelemetry::Trace.current_span.context
+    trace_id = span_context.trace_id.unpack1('H*')
+    span_id = span_context.span_id.unpack1('H*')
+    trace_flags = format('%02x', span_context.trace_flags.instance_eval{ @flags }) # Two-digit hex for trace flags (e.g., sampled)
+    "00-#{trace_id}-#{span_id}-#{trace_flags}"
 end
 
 def otl_def(name)
