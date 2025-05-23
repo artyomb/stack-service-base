@@ -1,7 +1,7 @@
 require 'console'
 require 'fiber'
 
-QUIET = ENV.fetch('CONSOLE_LEVEL', 'false') == 'true'
+QUIET = ENV.fetch('QUIET', 'false') == 'true'
 PERFORMANCE = ENV.fetch('PERFORMANCE', 'false') == 'true'
 
 ENV['CONSOLE_LEVEL'] ||= 'all' unless QUIET || PERFORMANCE

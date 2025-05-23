@@ -23,6 +23,31 @@ module StackServiceBase
           otel_initialize
         end
 
+        if defined? Sequel
+          Sequel::Database.after_initialize { _1.loggers << LOGGER }
+
+          attempts= 10
+          sleep_interval= 1
+
+          mod = Module.new do
+            define_method(:connect) do |*args, **opts, &blk|
+              tries = attempts
+              begin
+                super(*args, **opts, &blk)
+              rescue Sequel::DatabaseConnectionError, Sequel::DatabaseError => e
+                if (tries -= 1) > 0
+                  LOGGER.warn "DB connect failed (#{e.message}), retrying in #{sleep_interval}s… (#{tries} left)"
+                  sleep sleep_interval
+                  retry
+                end
+                raise
+              end
+            end
+          end
+
+          Sequel.singleton_class.prepend(mod)
+          # ---
+        end
       end
     end
   end

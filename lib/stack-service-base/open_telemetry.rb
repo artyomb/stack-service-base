@@ -135,6 +135,11 @@ def otl_current_span
   yield OpenTelemetry::Trace.current_span
 end
 
+# OpenTelemetry::Trace.current_span.tap do |span|
+#   span.record_exception(e)
+#   span.status = OpenTelemetry::Trace::Status.error("Unhandled exception of type: #{e.class}")
+# end
+
 def otl_traceparent_id
     return nil unless OTEL_ENABLED
 
