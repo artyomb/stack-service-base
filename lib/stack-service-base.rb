@@ -47,6 +47,8 @@ module StackServiceBase
 
           Sequel.singleton_class.prepend(mod)
           # ---
+          #
+          require_relative 'stack-service-base/fiber_pool'
         end
       end
     end

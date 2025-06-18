@@ -46,6 +46,16 @@ module RackHelpers
 
   #
 
+  Rack.define_middleware :OTELTraceFullRequest do |env, app, opts|
+    request_headers = env.select { |k, _| k.start_with? 'HTTP_' }
+    request_body = env['rack.input'].read
+
+    response_code, response_headers, response_body = app.call(env)
+    response_body = response_body.read if response_body.respond_to? :read
+    otl_span( :Request, {request_headers: , request_body:, response_code:, response_headers: , response_body: }) {}
+    [response_code, response_headers, response_body]
+  end
+
   Rack.define_middleware :OTELTraceInfo do |env, app, opts|
     status, headers, body = app.call env
     if status.to_i >= 500
