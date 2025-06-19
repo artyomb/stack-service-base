@@ -10,18 +10,18 @@ module StackServiceBase
       return unless app.respond_to? :use
 
       app.instance_eval do
+        if OTEL_ENABLED
+          otel_initialize
+        end
+
         RackHelpers.rack_setup app
+
         if ENV.fetch('PROMETHEUS_METRICS_EXPORT', 'true') == 'true'
           require 'stack-service-base/prometheus'
 
           # use Rack::Deflater
           use Prometheus::Middleware::Collector
           use Prometheus::Middleware::Exporter
-        end
-
-        if OTEL_ENABLED
-          otel_initialize
-          use *OpenTelemetry::Instrumentation::Rack::Instrumentation.instance.middleware_args
         end
 
         if defined? Sequel
