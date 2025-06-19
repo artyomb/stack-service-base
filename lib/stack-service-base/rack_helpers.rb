@@ -171,9 +171,11 @@ module RackHelpers
         env['PATH_INFO'] == '/healthcheck' ? [200, {'Content-Type' =>'application/json'}, [{ Status: 'Healthy' }.to_json ]] : app.call(env)
       end
 
-      if defined? OpenTelemetry::Instrumentation::Rack::Middlewares::TracerMiddleware
-        use OpenTelemetry::Instrumentation::Rack::Middlewares::TracerMiddleware
+      if defined? OpenTelemetry::Instrumentation::Rack::Instrumentation
+        # use OpenTelemetry::Instrumentation::Rack::Middlewares::TracerMiddleware
+        app.use *OpenTelemetry::Instrumentation::Rack::Instrumentation.instance.middleware_args
       end
+
       app.use Rack::Deflater
       app.use OTELTraceInfo if defined? OpenTelemetry::Trace
 
