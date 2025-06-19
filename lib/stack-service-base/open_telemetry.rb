@@ -60,10 +60,13 @@ def otel_initialize
 
   OpenTelemetry::SDK.configure do |c|
     OpenTelemetry::Instrumentation::Rack
+    # OpenTelemetry::Instrumentation::Rack::Middlewares::TracerMiddleware
+    # Rack::Builder
+    OpenTelemetry::Instrumentation::Sinatra
     c.use_all({
-      'OpenTelemetry::Instrumentation::Sinatra' => { install_rack: true },
+      'OpenTelemetry::Instrumentation::Sinatra' => { install_rack: false }, # instlled by stack-service-base.rb#24 (use *OpenTelemetry::Instrumentation::Rack::Instrumentation.instance.middleware_args)
       'OpenTelemetry::Instrumentation::Rack' => {
-        use_rack_events: false, # TODO: doesnt work with Websoker requests
+        use_rack_events: false, # TODO: doesnt work with Websoket requests
         # /home/user/.rbenv/versions/3.3.1/lib/ruby/gems/3.3.0/gems/opentelemetry-instrumentation-rack-0.26.0/lib/opentelemetry/instrumentation/rack/instrumentation.rb#43
         url_quantization: ->(path, env) { "HTTP #{env['REQUEST_METHOD']} #{path}" },
         untraced_requests: ->(env) { env['HTTP_UPGRADE'] == 'websocket' }

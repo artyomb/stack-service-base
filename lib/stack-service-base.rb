@@ -21,6 +21,7 @@ module StackServiceBase
 
         if OTEL_ENABLED
           otel_initialize
+          use *OpenTelemetry::Instrumentation::Rack::Instrumentation.instance.middleware_args
         end
 
         if defined? Sequel
