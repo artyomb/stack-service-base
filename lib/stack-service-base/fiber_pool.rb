@@ -7,21 +7,29 @@ class FiberConnectionPool < Sequel::ConnectionPool
   POOL_SIZE = 10
 
   def log(msg)
+    otl_current_span{ |span|
+      span.add_event("Fiber:log", attributes:{
+        event: 'Success', message: msg
+      }.transform_keys(&:to_s) )
+    }
+
     return if defined? PERFORMANCE
     $stdout.puts "F:#{Fiber.current.__id__} : T:#{Thread.current.__id__} : A:#{self.__id__} : #{msg}"
     # LOGGER.debug :fiber_pool, msg
   end
 
   def initialize(db, opts = OPTS)
-    super
-    @allocator = ->() {
-      make_new(:default).tap { |conn|
-        log "new connection (fiber pool) #{conn}"
+    otl_span "FiberConnectionPool.initialize" do |span|
+      super
+      @allocator = ->() {
+        make_new(:default).tap { |conn|
+          log "new connection (fiber pool) #{conn}"
+        }
       }
-    }
-    @stock = []
-    @acquired = {}
-    @sp = Async::Semaphore.new opts[:max_connections] || POOL_SIZE
+      @stock = []
+      @acquired = {}
+      @sp = Async::Semaphore.new opts[:max_connections] || POOL_SIZE
+    end
   end
 
   def is_valid_connection?(conn)
