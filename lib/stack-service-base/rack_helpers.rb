@@ -1,3 +1,5 @@
+require 'rack'
+
 module RackHelpers
   def Rack.middleware_klass(&block)
     Class.new do

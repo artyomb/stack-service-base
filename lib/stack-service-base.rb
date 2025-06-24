@@ -25,6 +25,8 @@ module StackServiceBase
         end
 
         if defined? Sequel
+          require 'stack-service-base/database'
+
           Sequel::Database.after_initialize { _1.loggers << LOGGER }
 
           attempts= 10

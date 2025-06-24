@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = ">= " + File.read(File.dirname(__FILE__)+'/.ruby-version').strip
 
+  s.add_dependency 'rack'
   s.add_dependency 'async'
   s.add_dependency 'prometheus-client'
   s.add_dependency 'opentelemetry-sdk'
