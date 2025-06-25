@@ -8,8 +8,9 @@ class FiberConnectionPool < Sequel::ConnectionPool
 
   def log(msg)
     otl_current_span{ |span|
-      span.add_event("Fiber:log", attributes:{
-        event: 'Success', message: msg
+      span.add_event("FiberPool", attributes: {
+        F: Fiber.current.__id__, T: Thread.current.__id__, A: self.__id__,
+        message: msg
       }.transform_keys(&:to_s) )
     }
 
@@ -37,7 +38,7 @@ class FiberConnectionPool < Sequel::ConnectionPool
     log_connection_execute(conn, sql)
     true
   rescue =>e_
-    conn.close rescue
+    conn.close rescue nil
     false
   end
 
@@ -79,10 +80,10 @@ class FiberConnectionPool < Sequel::ConnectionPool
   def max_size = @sp.limit
   # def preconnect(_concurrent = false) = :unimplemented
   def disconnect(symbol)
-     until @stock.empty?
-       log 'disconnect connection (fiber pool)'
-       @stock.shift.close
-     end
+    until @stock.empty?
+      log 'disconnect connection (fiber pool)'
+      @stock.shift.close
+    end
   end
   # def servers = []
   def pool_type = :fiber # :threaded
@@ -99,8 +100,10 @@ require 'sequel/adapters/postgres'
 class Sequel::Postgres::Adapter
   def execute_query(sql, args)
     $stdout.puts "F:#{Fiber.current.__id__} : T:#{Thread.current.__id__} : A:#{self.__id__} : #{sql[0..60]}" unless defined? PERFORMANCE
+    log "query: #{sql.slice(0, 60)}"
     @db.log_connection_yield(sql, self, args){args ? async_exec_params(sql, args) : async_exec(sql)}
   rescue => e
+    log "Error: #{e.message}"
     $stdout.puts e.message
     raise
   end
