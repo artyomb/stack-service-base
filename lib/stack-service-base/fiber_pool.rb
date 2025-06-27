@@ -100,10 +100,10 @@ require 'sequel/adapters/postgres'
 class Sequel::Postgres::Adapter
   def execute_query(sql, args)
     $stdout.puts "F:#{Fiber.current.__id__} : T:#{Thread.current.__id__} : A:#{self.__id__} : #{sql[0..60]}" unless defined? PERFORMANCE
-    log "query: #{sql.slice(0, 60)}"
+    # log "query: #{sql.slice(0, 60)}"
     @db.log_connection_yield(sql, self, args){args ? async_exec_params(sql, args) : async_exec(sql)}
   rescue => e
-    log "Error: #{e.message}"
+    # log "Error: #{e.message}"
     $stdout.puts e.message
     raise
   end
