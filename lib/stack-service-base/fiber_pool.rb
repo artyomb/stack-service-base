@@ -2,29 +2,31 @@ require 'sequel'
 require 'async/semaphore'
 # $stdout.sync = true
 
+$local_log = -> msg do
+  otl_current_span{ |span|
+    span.add_event("FiberPool", attributes: {
+      F: Fiber.current.__id__, T: Thread.current.__id__, A: self.__id__,
+      message: msg
+    }.transform_keys(&:to_s) )
+  }
+
+  return if defined? PERFORMANCE
+  $stdout.puts "F:#{Fiber.current.__id__} : T:#{Thread.current.__id__} : A:#{self.__id__} : #{msg}"
+  # LOGGER.debug :fiber_pool, msg
+end
+
+
+
 class FiberConnectionPool < Sequel::ConnectionPool
   VALIDATION_TIMEOUT = 20
   POOL_SIZE = 10
-
-  def log(msg)
-    otl_current_span{ |span|
-      span.add_event("FiberPool", attributes: {
-        F: Fiber.current.__id__, T: Thread.current.__id__, A: self.__id__,
-        message: msg
-      }.transform_keys(&:to_s) )
-    }
-
-    return if defined? PERFORMANCE
-    $stdout.puts "F:#{Fiber.current.__id__} : T:#{Thread.current.__id__} : A:#{self.__id__} : #{msg}"
-    # LOGGER.debug :fiber_pool, msg
-  end
 
   def initialize(db, opts = OPTS)
     otl_span "FiberConnectionPool.initialize" do |span|
       super
       @allocator = ->() {
         make_new(:default).tap { |conn|
-          log "new connection (fiber pool) #{conn}"
+          $local_log["new connection (fiber pool) #{conn}"]
         }
       }
       @stock = []
@@ -44,7 +46,7 @@ class FiberConnectionPool < Sequel::ConnectionPool
 
   def hold(_server = nil)
     return yield @acquired[Fiber.current] if @acquired[Fiber.current] # protect from recursion
-    log "hold in (fiber pool: #{__id__}) #{@stock.map{_1.__id__}}"
+    $local_log["hold in (fiber pool: #{__id__}) #{@stock.map{_1.__id__}}"]
     fiber = Fiber.current
     try_count = 2
 
@@ -60,19 +62,19 @@ class FiberConnectionPool < Sequel::ConnectionPool
       yield @acquired[fiber]
 
     rescue Sequel::DatabaseDisconnectError => e
-      log "remove connection (fiber pool) retry(#{try_count})"
+      $local_log["remove connection (fiber pool) retry(#{try_count})"]
       @acquired.delete(fiber)
       (try_count -=1) < 0 ? raise : retry
 
     rescue =>e
       $stdout.puts e.message
       $stdout.puts e.backtrace[0..10].join "\n"
-      log 'remove connection (fiber pool) give up'
+      $local_log['remove connection (fiber pool) give up']
       @acquired.delete(fiber)
       raise
     ensure
       @stock.push @acquired.delete(fiber) if @acquired[fiber]
-      log "hold out (fiber pool: #{__id__}) #{@stock.map{_1.__id__}}"
+      $local_log["hold out (fiber pool: #{__id__}) #{@stock.map{_1.__id__}}"]
     end
   end
 
@@ -81,7 +83,7 @@ class FiberConnectionPool < Sequel::ConnectionPool
   # def preconnect(_concurrent = false) = :unimplemented
   def disconnect(symbol)
     until @stock.empty?
-      log 'disconnect connection (fiber pool)'
+      $local_log['disconnect connection (fiber pool)']
       @stock.shift.close
     end
   end
@@ -100,10 +102,10 @@ require 'sequel/adapters/postgres'
 class Sequel::Postgres::Adapter
   def execute_query(sql, args)
     $stdout.puts "F:#{Fiber.current.__id__} : T:#{Thread.current.__id__} : A:#{self.__id__} : #{sql[0..60]}" unless defined? PERFORMANCE
-    # log "query: #{sql.slice(0, 60)}"
+    $local_log["query: #{sql.slice(0, 60)}"]
     @db.log_connection_yield(sql, self, args){args ? async_exec_params(sql, args) : async_exec(sql)}
   rescue => e
-    # log "Error: #{e.message}"
+    $local_log["Error: #{e.message}"]
     $stdout.puts e.message
     raise
   end
