@@ -26,7 +26,7 @@ class FiberConnectionPool < Sequel::ConnectionPool
       super
       @allocator = ->() {
         make_new(:default).tap { |conn|
-          $local_log["new connection (fiber pool) #{conn}"]
+          $local_log["new connection (fiber pool) #{conn.__id__}"]
         }
       }
       @stock = []
@@ -102,8 +102,10 @@ require 'sequel/adapters/postgres'
 class Sequel::Postgres::Adapter
   def execute_query(sql, args)
     $stdout.puts "F:#{Fiber.current.__id__} : T:#{Thread.current.__id__} : A:#{self.__id__} : #{sql[0..60]}" unless defined? PERFORMANCE
-    $local_log["query: #{sql.slice(0, 60)}"]
-    @db.log_connection_yield(sql, self, args){args ? async_exec_params(sql, args) : async_exec(sql)}
+    $local_log["query (#{self.__id__}): #{sql.slice(0, 60)}"]
+    @db.log_connection_yield(sql, self, args) do
+      args ? async_exec_params(sql, args) : async_exec(sql)
+    end
   rescue => e
     $local_log["Error: #{e.message}"]
     $stdout.puts e.message
