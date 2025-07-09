@@ -1,6 +1,7 @@
 require 'stack-service-base/logging'
 require 'stack-service-base/rack_helpers'
 require 'stack-service-base/open_telemetry'
+require 'stack-service-base/nats_service'
 
 module StackServiceBase
   class << self
@@ -12,6 +13,10 @@ module StackServiceBase
       app.instance_eval do
         if OTEL_ENABLED
           otel_initialize
+        end
+
+        if NATS_ENABLED
+          initialize_nats_service
         end
 
         RackHelpers.rack_setup app
