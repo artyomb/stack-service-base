@@ -13,6 +13,7 @@ ENV['NATS_MAX_RECONNECT_ATTEMPTS'] ||= '-1'
 $nats_client = nil
 
 def initialize_nats_service
+  LOGGER.info "Initializing NATS service"
 
   $nats_client = NATS.connect NATS_URL
 

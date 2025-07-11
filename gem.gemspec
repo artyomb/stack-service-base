@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'opentelemetry-exporter-otlp'
   s.add_dependency 'opentelemetry-instrumentation-all'
   s.add_dependency 'nats-pure'
+  s.add_dependency 'websocket'
 
   s.add_development_dependency "rake", "~> 13.0"
   s.add_development_dependency "rspec", "~> 3.10"
