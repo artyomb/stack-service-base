@@ -17,6 +17,8 @@ COPY . /app
 ENV RACK_ENV=production NODE_ENV=production
 RUN rake -T | grep 'rake build' && rake build || echo 'no build task'
 
+# used in .gitlab-ci.yml Tests.
+FROM base AS tests
 RUN bundle exec rspec
 
 FROM ruby:3.4.4-slim-bookworm AS deploy
@@ -24,6 +26,9 @@ RUN apt update && apt install --fix-missing -y bash curl libssl-dev bash curl wg
      && rm -rf /var/lib/apt/lists/*
 
 COPY --from=base /usr/local/bundle /usr/local/bundle
+
+# Force start & wait test Stage
+# COPY --from=tests /app/src/spec/results /app/src/spec/results
 
 COPY . /app
 

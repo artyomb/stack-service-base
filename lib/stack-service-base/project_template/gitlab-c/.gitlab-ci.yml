@@ -19,4 +19,5 @@ tests:
   <<: *build_block
   variables:
     CI_SKIP_PUSH: true
+    # build-labels sets target for each service in docker-compose.yml
     CI_BUILD_TARGET: tests
