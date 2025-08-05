@@ -5,6 +5,6 @@ services:
       context: ../src
       additional_contexts:
         docker: ../docker
-      dockerfile: ../docker/Dockerfile
+      dockerfile: ../docker/ruby/Dockerfile
     ports:
       - "8000:8000"
