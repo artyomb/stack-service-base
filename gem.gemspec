@@ -3,9 +3,11 @@ require_relative 'lib/version'
 Gem::Specification.new do |s|
   s.name        = 'stack-service-base'
   s.version     = StackServiceBase::Base::VERSION
+  s.executables << 'ssbase'
   s.summary     = 'Common files'
-  s.authors     = ['']
-  s.require_paths = ['.']
+  s.authors     = ['Artyom B']
+  s.bindir        = 'bin'
+  s.require_paths = ['lib']
   s.files       = Dir['{bin,lib,test,examples}/**/*']
   s.require_paths = ['lib']
 
@@ -28,5 +30,3 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec_junit_formatter", "~> 0.5.1"
 
 end
-
-

@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+lib = File.expand_path('../lib', __dir__)
+$LOAD_PATH << lib
+#$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+require 'stack-service-base/command_line'
+require 'stack-service-base/command_init'
+include SSBase
+
+SSBase::CommandLine.run ARGV

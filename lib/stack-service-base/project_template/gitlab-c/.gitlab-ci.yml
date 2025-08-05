@@ -1,0 +1,22 @@
+stages:
+  - first
+
+.build_block: &build_block
+  stage: first
+  tags: [ gis-builder ]
+  needs: [ ]
+  image: docker:27.5.1
+  script:
+    - docker run --rm `env | grep -o '^CI_[^=]*' | sed 's/^/-e /'`
+      -v /var/run/docker.sock:/var/run/docker.sock
+      -v /root/.docker:/root/.docker
+      $(docker build -q -t build/${CI_PROJECT_NAME} -f docker/Dockerfile.build .) 2>&1
+
+build push:
+  <<: *build_block
+
+tests:
+  <<: *build_block
+  variables:
+    CI_SKIP_PUSH: true
+    CI_BUILD_TARGET: tests
