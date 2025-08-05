@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.authors     = ['Artyom B']
   s.bindir        = 'bin'
   s.require_paths = ['lib']
-  s.files       = Dir['{bin,lib,test,examples}/**/{*,.*}', File::FNM_DOTMATCH]
+  s.files       = Dir['{bin,lib,test,examples}/**/{*,.*}']
   s.require_paths = ['lib']
 
   s.required_ruby_version = ">= " + File.read(File.dirname(__FILE__)+'/.ruby-version').strip
@@ -30,3 +30,4 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec_junit_formatter", "~> 0.5.1"
 
 end
+
