@@ -25,10 +25,32 @@ SSBase::CommandLine::COMMANDS[:init] = Class.new do
     update_service_name args.shift
   end
 
+  def cp_r(src, dst)
+    # Mimics cp -rn src/. dst/ behavior.
+    Dir.glob("#{src}/**/{*,.*}", File::FNM_DOTMATCH).each do |source_path|
+      next if ['.', '..'].include?(File.basename(source_path))
+
+      rel_path = source_path.sub(/^#{Regexp.escape(src)}\/?/, '')
+      dest_path = File.join(dst, rel_path)
+
+      next if File.exist?(dest_path)
+
+      if File.directory?(source_path)
+        FileUtils.mkdir_p(dest_path, verbose: true)
+      else
+        $stdout.puts "add -> #{dest_path}"
+        FileUtils.cp(source_path, dest_path)
+      end
+    end
+  end
+
+
   def copy_folder( f_name)
     $stdout.puts "Copy template: #{f_name}"
+    cp_r "#{__dir__}/project_template/#{f_name}/.", '.'
+    # FileUtils.cp_r "#{__dir__}/project_template/#{f_name}/.", '.', verbose: true
     # system "cp -rv --update=none #{__dir__}/project_template/#{f_name}/. ."
-    system "rsync -av --ignore-existing --info=NAME,progress0,stats0  #{__dir__}/project_template/#{f_name}/ ./  | grep -v '^sending incremental file list$'  | grep -v '/$' "
+    #system "rsync -av --ignore-existing --info=NAME,progress0,stats0  #{__dir__}/project_template/#{f_name}/ ./  | grep -v '^sending incremental file list$'  | grep -v '/$' "
   end
 
   def update_service_name(s_name)
