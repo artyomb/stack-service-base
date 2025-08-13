@@ -10,7 +10,7 @@ require 'simplecov'
 SimpleCov.start
 
 ENV['DB_URL'] = 'sqlite::memory:'
-$app = Rack::Builder.parse_file('config.ru')
+$app = Rack::Builder.parse_file(File.expand_path 'config.ru')
 
 module Rack::Test::JHelpers
   def app = $app

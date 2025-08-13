@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.authors     = ['Artyom B']
   s.bindir        = 'bin'
   s.require_paths = ['lib']
-  s.files = Dir.glob('{bin,lib,test,examples}/**/*', File::FNM_DOTMATCH).reject { File.basename(_1) =~ /^\.\.?$/ || File.directory?(_1) }
+  s.files = Dir.glob('{bin,lib,test,examples}/**/*', File::FNM_DOTMATCH).reject {File.directory?(_1) }
   s.require_paths = ['lib']
   s.required_ruby_version = ">= " + File.read(File.dirname(__FILE__)+'/.ruby-version').strip
 
