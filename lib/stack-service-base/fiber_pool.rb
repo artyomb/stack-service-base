@@ -94,7 +94,9 @@ end
 
 # Override Sequel::Database to use FiberConnectionPool by default.
 Sequel::Database.prepend(Module.new do
-  def connection_pool_default_options = { pool_class: FiberConnectionPool }
+  def connection_pool_default_options
+    @opts[:adapter] == 'postgres' ? {pool_class: FiberConnectionPool} : super
+  end
 end)
 
 require 'sequel/adapters/postgres'
