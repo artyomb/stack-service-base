@@ -1,6 +1,6 @@
 services:
   ${service_name}:
-    image: ${REGISTRY_HOST}/${service_name}
+    image: ${REGISTRY_HOST}/${service_name}/${CI_COMMIT_BRANCH}
     build:
       context: ../src
       additional_contexts:
