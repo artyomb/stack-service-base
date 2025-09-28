@@ -10,6 +10,10 @@ ENV['NATS_RECONNECT'] ||= 'true'
 ENV['NATS_RECONNECT_TIME_WAIT'] ||= '1000'
 ENV['NATS_MAX_RECONNECT_ATTEMPTS'] ||= '-1'
 
+module NATS
+  def nats_client = $nats_client
+end
+
 $nats_client = nil
 
 def initialize_nats_service

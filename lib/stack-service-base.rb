@@ -2,6 +2,7 @@ require 'stack-service-base/logging'
 require 'stack-service-base/rack_helpers'
 require 'stack-service-base/open_telemetry'
 require 'stack-service-base/nats_service'
+require 'stack-service-base/sinatra_ext'
 
 module StackServiceBase
   class << self
@@ -20,6 +21,15 @@ module StackServiceBase
         end
 
         RackHelpers.rack_setup app
+
+        # Sinatra?
+        # disable :show_exceptions unless ENV['DEBUG']
+        # error do
+        #   status 500
+        #   $stderr.puts "Exception: #{env['sinatra.error']}"
+        #   $stderr.puts "Exception backtrace: #{env['sinatra.error'].backtrace[0..10].join("\n")}"
+        #   { error: "Internal server error", message: env['sinatra.error'].message }.to_json
+        # end
 
         if ENV.fetch('PROMETHEUS_METRICS_EXPORT', 'true') == 'true'
           require 'stack-service-base/prometheus'
