@@ -1,5 +1,5 @@
 require 'rspec/core/rake_task'
-require_relative 'lib/version'
+require_relative 'lib/stack-service-base/version'
 
 rspec = RSpec::Core::RakeTask.new(:spec)
 
@@ -42,9 +42,9 @@ task push: %i[readme] do |t|
   puts 'Build&push new version'
   gemspec = Dir['*.gemspec'].first
   system "gem build #{gemspec}" or exit 1
-  system "gem install ./stack-service-base-#{StackServiceBase::Base::VERSION}.gem" or exit 1
+  system "gem install ./stack-service-base-#{StackServiceBase::VERSION}.gem" or exit 1
   # curl -u gempusher https://rubygems.org/api/v1/api_key.yaml > ~/.gem/credentials; chmod 0600 ~/.gem/credentials
-  system "gem push stack-service-base-#{StackServiceBase::Base::VERSION}.gem" or exit 1
+  system "gem push stack-service-base-#{StackServiceBase::VERSION}.gem" or exit 1
   system 'gem list -r stack-service-base' or exit 1
 end
 

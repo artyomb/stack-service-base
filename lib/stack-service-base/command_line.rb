@@ -1,4 +1,4 @@
-require_relative '../version'
+require_relative 'version'
 require 'open3'
 require 'optionparser'
 
@@ -42,7 +42,7 @@ module SSBase
         ARGV << '-h' if ARGV.empty?
 
         OptionParser.new do |o|
-          o.version = "#{StackServiceBase::Base::VERSION}"
+          o.version = "#{StackServiceBase::VERSION}"
 
           usage = [
             'ssbase [options] COMMAND',
