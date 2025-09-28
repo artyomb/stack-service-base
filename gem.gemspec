@@ -1,8 +1,8 @@
-require_relative 'lib/version'
+require_relative 'lib/stack-service-base/version'
 
 Gem::Specification.new do |s|
   s.name        = 'stack-service-base'
-  s.version     = StackServiceBase::Base::VERSION
+  s.version     = StackServiceBase::VERSION
   s.executables << 'ssbase'
   s.summary     = 'Common files'
   s.authors     = ['Artyom B']

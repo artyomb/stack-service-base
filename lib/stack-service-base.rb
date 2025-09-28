@@ -1,3 +1,4 @@
+require 'stack-service-base/version'
 require 'stack-service-base/logging'
 require 'stack-service-base/rack_helpers'
 require 'stack-service-base/open_telemetry'
