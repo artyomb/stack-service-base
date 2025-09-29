@@ -1,13 +1,14 @@
 require "nats"
+require_relative 'nats_patch_1'
 
-NATS_ENABLED = ENV['NATS_URL'].to_s != ''
+NATS_ENABLED = ENV['SWARM_NATS_URL'].to_s != ''
 
-NATS_URL = ENV['NATS_URL']# || 'nats://nats_single:4222'
+SWARM_NATS_URL = ENV['SWARM_NATS_URL']# || 'nats://nats_single:4222'
 NATS_STACK_NAME = ENV['STACK_NAME'] || 'undefined_stack'
 NATS_SERVICE_NAME = ENV['STACK_SERVICE_NAME'] || 'undefined_service'
 
 ENV['NATS_RECONNECT'] ||= 'true'
-ENV['NATS_RECONNECT_TIME_WAIT'] ||= '1000'
+ENV['NATS_RECONNECT_TIME_WAIT'] ||= '30'
 ENV['NATS_MAX_RECONNECT_ATTEMPTS'] ||= '-1'
 
 module NATS
@@ -19,7 +20,7 @@ $nats_client = nil
 def initialize_nats_service
   LOGGER.info "Initializing NATS service"
 
-  $nats_client = NATS.connect NATS_URL
+  $nats_client = NATS.connect SWARM_NATS_URL
 
   service = $nats_client.services.add(
     name: "#{NATS_SERVICE_NAME}_#{NATS_STACK_NAME}",
