@@ -1,4 +1,8 @@
 if Bundler.definition.specs.any? { |spec| spec.name == 'sinatra' }
+  unless Bundler.definition.specs.any? { |spec| spec.name == 'slim' }
+    raise 'When using with Sinatra, gem slim is required'
+  end
+
   require 'sinatra/base'
 
   module Sinatra
