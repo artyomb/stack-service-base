@@ -1,3 +1,11 @@
+script src='/ssbase/main.js'
+
 h1 SSBase info
-p
-  | version = #{StackServiceBase::VERSION}
+pre _
+  version = #{StackServiceBase::VERSION}
+  OTEL_ENABLED = #{::OTEL_ENABLED}
+  PERFORMANCE = #{::PERFORMANCE}
+  QUIET = #{::QUIET}
+  NATS_ENABLED = #{::NATS_ENABLED}
+  CONSOLE_LEVEL = #{ENV['CONSOLE_LEVEL']}
+  CONSOLE_OUTPUT = #{ENV['CONSOLE_OUTPUT']}

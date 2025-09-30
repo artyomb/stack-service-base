@@ -7,6 +7,17 @@ if Bundler.definition.specs.any? { |spec| spec.name == 'sinatra' }
 
   module Sinatra
     module SSBaseSinatra
+      module AddPublic
+        def static!(options={})
+          super
+          path = File.expand_path "#{__dir__}/public/#{Sinatra::Base::URI_INSTANCE.unescape(request.path_info)}"
+          return unless File.file?(path)
+
+          env['sinatra.static_file'] = path
+          cache_control(*settings.static_cache_control) if settings.static_cache_control?
+          send_file path, options.merge(disposition: nil)
+        end
+      end
       module FindTemplate
         def find_template(views, name, engine, &block)
           super
@@ -21,6 +32,9 @@ if Bundler.definition.specs.any? { |spec| spec.name == 'sinatra' }
       def self.registered(app)
         # app.helpers MyHelpers
         Sinatra::Templates.prepend FindTemplate
+        Sinatra::Base.prepend AddPublic
+        app.set :static, true
+
         app.get '/ssbase_info' do
           slim :ssbase_info
         end
