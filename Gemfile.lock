@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    stack-service-base (0.0.41)
+    stack-service-base (0.0.42)
       async
       nats-pure
       opentelemetry-exporter-otlp

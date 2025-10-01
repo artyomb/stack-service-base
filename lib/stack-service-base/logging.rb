@@ -17,6 +17,10 @@ CONSOLE_LOGGER = Class.new {
   def warn(...) = Console.logger.warn(...)
   def error(...) = Console.logger.error(...)
   def fatal(...) = Console.logger.fatal(...)
+  def exception(e)
+    backtrace = e.backtrace.join "\n" rescue ''
+    Console.logger.fatal(e.message, backtrace)
+  end
 }.new
 
 if QUIET
@@ -109,7 +113,14 @@ else
 
     def fatal(...) = do_log(:fatal, ...)
 
-    def do_log(name, *args)
+    def exception(e)
+      backtrace = e.backtrace.join "\n" rescue ''
+      do_log(:fatal, e.message, backtrace)
+    end
+
+    def do_log(name, prefix_, *args)
+      prefix = prefix_.class == String ? prefix_ : prefix_.inspect
+
       debug_level = name[/(\d+)/, 1].to_i
       unless debug_level > LOG_DEPTH
         if TRACE_METHODS
@@ -117,13 +128,13 @@ else
           call_stack_fiber = call_stack[Fiber.current.__id__] ||= []
           last = call_stack_fiber[-3] ? call_stack_fiber[-3].join('.').gsub('Class:', '').gsub(/[#<>]/, '') : ''
           last += find_context
-          msg = "\e[33m#{last}:\e[0m \e[38;5;254m" + args.flatten.map(&:inspect).join(', ')
+          msg = "\e[33m#{last}:\e[0m \e[38;5;254m#{prefix}"
         else
-          msg = args.flatten.map(&:inspect).join(', ')
+          msg = "#{prefix}"
         end
         _name = name.to_s.gsub(/\d/, '')
         _name = 'info' if _name == '<<'
-        Console.logger.send _name.to_s.gsub(/\d/, ''), msg
+        Console.logger.send _name.to_s.gsub(/\d/, ''), msg, *args
       end
     end
   }.new
