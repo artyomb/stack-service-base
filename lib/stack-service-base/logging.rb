@@ -17,9 +17,8 @@ CONSOLE_LOGGER = Class.new {
   def warn(...) = Console.logger.warn(...)
   def error(...) = Console.logger.error(...)
   def fatal(...) = Console.logger.fatal(...)
-  def exception(e)
-    backtrace = e.backtrace.join "\n" rescue ''
-    Console.logger.fatal(e.message, backtrace)
+  def exception(subject, e)
+    Console.logger.error subject, e
   end
 }.new
 
@@ -113,13 +112,16 @@ else
 
     def fatal(...) = do_log(:fatal, ...)
 
-    def exception(e)
-      backtrace = e.backtrace.join "\n" rescue ''
-      do_log(:fatal, e.message, backtrace)
+    def exception(subject, e)
+      do_log(:error, subject, e)
     end
 
     def do_log(name, prefix_, *args)
       prefix = prefix_.class == String ? prefix_ : prefix_.inspect
+      if prefix_.kind_of? Exception
+        prefix = prefix_.message
+        args << prefix_
+      end
 
       debug_level = name[/(\d+)/, 1].to_i
       unless debug_level > LOG_DEPTH
