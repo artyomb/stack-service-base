@@ -4,6 +4,7 @@ require 'stack-service-base/rack_helpers'
 require 'stack-service-base/open_telemetry'
 require 'stack-service-base/nats_service'
 require 'stack-service-base/sinatra_ext'
+require 'stack-service-base/debugger'
 
 module StackServiceBase
   class << self

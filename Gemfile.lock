@@ -1,8 +1,9 @@
 PATH
   remote: .
   specs:
-    stack-service-base (0.0.43)
+    stack-service-base (0.0.45)
       async
+      debug
       nats-pure
       opentelemetry-exporter-otlp
       opentelemetry-instrumentation-all
@@ -28,6 +29,9 @@ GEM
       fiber-annotation
       fiber-local (~> 1.1)
       json
+    debug (1.9.1)
+      irb (~> 1.10)
+      reline (>= 0.3.8)
     diff-lcs (1.6.2)
     fiber-annotation (0.2.0)
     fiber-local (1.1.0)
@@ -41,7 +45,11 @@ GEM
       rake (>= 13)
     googleapis-common-protos-types (1.20.0)
       google-protobuf (>= 3.18, < 5.a)
+    io-console (0.7.2)
     io-event (1.12.1)
+    irb (1.14.0)
+      rdoc (>= 4.0.0)
+      reline (>= 0.4.2)
     json (2.13.0)
     language_server-protocol (3.17.0.5)
     metrics (0.12.2)
@@ -274,11 +282,17 @@ GEM
     prism (1.4.0)
     prometheus-client (4.2.4)
       base64
+    psych (5.1.2)
+      stringio
     racc (1.8.1)
     rack (3.1.16)
     rainbow (3.1.1)
     rake (13.3.0)
+    rdoc (6.7.0)
+      psych (>= 4.0.0)
     regexp_parser (2.10.0)
+    reline (0.5.9)
+      io-console (~> 0.5)
     rexml (3.4.1)
     rspec (3.13.1)
       rspec-core (~> 3.13.0)
@@ -315,6 +329,7 @@ GEM
       rubocop (~> 1.33)
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
+    stringio (3.1.1)
     traces (0.15.2)
     unicode-display_width (2.6.0)
     uri (1.0.3)
