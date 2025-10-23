@@ -198,7 +198,7 @@ module RackHelpers
         headers.merge!(
           # 'Access-Control-Allow-Origin' => "#{referer.scheme}://#{referer.host}",
           'Access-Control-Allow-Origin' => '*',
-          'Access-Control-Allow-Methods' => 'GET, PUT, POST, DELETE, HEAD, OPTIONS',
+          'Access-Control-Allow-Methods' => 'GET, PUT, POST, PATCH, DELETE, HEAD, OPTIONS',
           'Access-Control-Allow-Headers' => '*',
           'Access-Control-Allow-Credentials' => 'true')
         [code, headers, body]
