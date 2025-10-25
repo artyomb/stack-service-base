@@ -10,19 +10,30 @@ SSBase::CommandLine::COMMANDS[:init] = Class.new do
 
   def run(obj, params, args, _extra)
     if params.empty? || args.empty?
-      puts 'Usage: ssbase init [option] <service name>'
+      puts 'Usage:'
+      puts "\tssbase init [option] <service name>"
+      puts "\tssbase init stack [option]"
       puts 'option: --gitlab-c, --gitlab, --github'
       return
     end
 
+    first_arg = args.shift
 
-    copy_folder :home
+    if first_arg == 'stack'
+      type = :stack
+      service_name = 'fake-service-name'
+    else
+      type = :project
+      service_name = first_arg
+    end
 
-    copy_folder 'gitlab-c' if params[:gitlab_c]
-    copy_folder 'gitlab' if params[:gitlab]
-    copy_folder 'github' if params[:github]
+    copy_folder type, :home
 
-    update_service_name args.shift
+    copy_folder type, 'gitlab-c' if params[:gitlab_c]
+    copy_folder type, 'gitlab' if params[:gitlab]
+    copy_folder type, 'github' if params[:github]
+
+    update_service_name service_name  unless first_arg == 'stack'
   end
 
   def cp_r(src, dst)
@@ -45,9 +56,9 @@ SSBase::CommandLine::COMMANDS[:init] = Class.new do
   end
 
 
-  def copy_folder( f_name)
+  def copy_folder(type, f_name)
     $stdout.puts "Copy template: #{f_name}"
-    cp_r "#{__dir__}/project_template/#{f_name}/.", '.'
+    cp_r "#{__dir__}/#{type}_template/#{f_name}/.", '.'
     # FileUtils.cp_r "#{__dir__}/project_template/#{f_name}/.", '.', verbose: true
     # system "cp -rv --update=none #{__dir__}/project_template/#{f_name}/. ."
     #system "rsync -av --ignore-existing --info=NAME,progress0,stats0  #{__dir__}/project_template/#{f_name}/ ./  | grep -v '^sending incremental file list$'  | grep -v '/$' "

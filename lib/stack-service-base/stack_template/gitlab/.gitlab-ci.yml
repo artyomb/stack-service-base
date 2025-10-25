@@ -1,0 +1,22 @@
+stages:
+  - deploy
+
+deploy-job:
+  stage: deploy
+  image: docker:latest
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DEPLOY_SERVER: $DEPLOY_SERVER
+    DEPLOY_KEY: $DEPLOY_KEY
+  before_script:
+    - apk add --no-cache ruby && gem install dry-stack
+    - echo "$CI_DEPLOY_PASSWORD" | docker login $CI_REGISTRY -u $CI_DEPLOY_USER --password-stdin
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOY_KEY" | base64 -d > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host *\n\tStrictHostKeyChecking no" > ~/.ssh/config && chmod 400 ~/.ssh/config
+  script:
+    - cat stack/base.drs stack/stack.drs | dry-stack swarm_deploy -x ssh://${DEPLOY_SERVER} -- --prune --resolve-image=always

@@ -1,0 +1,27 @@
+BeforeService do
+  network :default
+  network :grafana_network, name: 'grafana-network', external: true
+  logging driver: 'loki', options: {
+    'loki-url': 'http://localhost:3100/loki/api/v1/push',
+    'loki-batch-size': 100, 'loki-retries': 2,
+    'loki-max-backoff': '1000ms', 'loki-timeout': '1s',
+    'max-buffer-size': '100m',
+    'mode': 'non-blocking',
+    'keep-file': 'true',
+    'max-size': "250m",
+    'max-file': "3"
+  }
+
+  env OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otlp_collector:4318/',
+      OTEL_EXPORTER_OTLP_ENDPOINT_FRONT: '/otel', # default value '/otel'
+      OTEL_RESOURCE_ATTRIBUTES: 'deployment.environment=%{stack-name},service.name=%{service-name},service.replica={{.Task.Slot}}',
+      OTEL_LOG_LEVEL: 'debug',
+      OTEL_TRACES_EXPORTER:'otlp',
+      REPLICA: "{{.Task.Slot}}"
+
+  env CONSOLE_OUTPUT: 'XTerm', # JSON,Text,XTerm,Default
+      CONSOLE_LEVEL: ENV.fetch('CONSOLE_LEVEL', 'all')
+
+  # deploy 'resources.limits': { cpus: '4', memory: '500M' }
+  # deploy restart_policy: { condition: 'on-failure', delay: '15s', window: '120s'} #  max_attempts: 3,
+end

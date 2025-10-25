@@ -1,6 +1,8 @@
 source 'https://rubygems.org'
 
 gem 'sinatra'
+gem 'slim'
+gem 'sassc'
 gem 'async'
 gem 'sequel'
 gem 'pg'

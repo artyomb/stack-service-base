@@ -1,0 +1,10 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  tags: [deploy]
+  image: docker:27.5.1
+  script:
+    - docker build -t deploy/${CI_PROJECT_NAME} -f stack/Dockerfile.deploy stack
+    - docker run --rm --env-file <(env | grep -E '^CI_') -v /var/run/docker.sock:/var/run/docker.sock -v /root/.docker:/root/.docker -v ssh-agent-socket:/run/ssh-agent:ro deploy/${CI_PROJECT_NAME}

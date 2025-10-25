@@ -9,6 +9,8 @@ DB = Sequel.connect ENV.fetch('DB_URL')
 # require Models ...
 # require_relative 'models/...'
 
+get '/', &-> { slim :index }
+
 get '/api/foo' do
   content_type :json
   {status: 'Ok'}.to_json

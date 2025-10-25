@@ -1,0 +1,5 @@
+Options name: 'stack-name'
+
+Service :service_name,  image: 'service_name/master', ports: 8000, ingress: { host: 'service_name.*' }
+
+raise 'Configure the stack (https://github.com/artyomb/dry-stack)'
