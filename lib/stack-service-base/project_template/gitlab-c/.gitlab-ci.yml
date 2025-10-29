@@ -3,7 +3,7 @@ stages:
 
 .build_block: &build_block
   stage: first
-  tags: [ gis-builder, build ]
+  tags: [ build ]
   needs: [ ]
   image: docker:27.5.1
   script:
