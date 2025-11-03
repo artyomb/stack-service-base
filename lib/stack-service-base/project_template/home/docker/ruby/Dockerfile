@@ -19,7 +19,8 @@ RUN rake -T | grep 'rake build' && rake build || echo 'no build task'
 
 # used in .gitlab-ci.yml Tests.
 FROM base AS tests
-RUN bundle exec rspec
+# COPY . . required test fixtures
+CMD bundle exec rspec
 
 FROM ruby:3.4.4-slim-bookworm AS deploy
 RUN apt update && apt install --fix-missing -y bash curl libssl-dev bash curl wget libpq-dev libyaml-0-2\

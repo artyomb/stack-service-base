@@ -20,6 +20,8 @@ group :test do
   gem 'rspec-benchmark'
   gem 'rspec_junit_formatter'
   gem 'async-rspec'
+  gem "rspec-snapshot"
+  gem 'testcontainers'
 
   gem 'simplecov'
   # gem 'simplecov-cobertura'

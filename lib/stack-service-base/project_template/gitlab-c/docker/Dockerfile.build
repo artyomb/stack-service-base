@@ -1,6 +1,6 @@
 FROM ruby:3.3.0-alpine3.19  AS base
-RUN apk add bash docker-cli-buildx git
-RUN gem install build-labels:0.0.56 dry-stack:0.1.16
+RUN apk add --update bash docker-cli-buildx docker-cli-compose git
+RUN gem install build-labels:0.0.66 dry-stack:0.1.16
 
 FROM base AS runner
 WORKDIR /build
@@ -10,5 +10,6 @@ CMD ["bash", "-c", "-x", "\
     env && cd /build/docker && \
     build-labels -n -c docker-compose.yml gitlab set_version to_dockerfiles to_compose | tee bake.yml && \
     export OTEL_RESOURCE_ATTRIBUTES=service.name=docker-builder,pipeline.id=${CI_PIPELINE_ID},project.name=${CI_PROJECT_NAME} && \
-    grep \"services: {}\" bake.yml || REGISTRY_HOST=$CI_REGISTRY_HOST docker buildx bake -f bake.yml $([ -z \"$CI_SKIP_PUSH\" ] && echo \"--push\") \
+    grep \"services: {}\" bake.yml || REGISTRY_HOST=$CI_REGISTRY_HOST docker buildx bake -f bake.yml $([ -z \"$CI_SKIP_PUSH\" ] && echo \"--push\") && \
+    ([ \"$CI_BUILD_TARGET\" = \"tests\" ] && docker-compose -f bake.yml up || true) \
     "]
