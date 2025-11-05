@@ -1,1 +1,2 @@
-/home/user/.codex/shared/AGENTS.md
+
+Refer to ~.codex/shared/AGENTS.md for the actual instructions.  

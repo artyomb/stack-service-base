@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    stack-service-base (0.0.52)
+    stack-service-base (0.0.53)
       async
       debug
       nats-pure
