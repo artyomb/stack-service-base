@@ -1,9 +1,10 @@
 PATH
   remote: .
   specs:
-    stack-service-base (0.0.53)
+    stack-service-base (0.0.55)
       async
       debug
+      dotenv
       nats-pure
       opentelemetry-exporter-otlp
       opentelemetry-instrumentation-all
@@ -33,6 +34,7 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     diff-lcs (1.6.2)
+    dotenv (3.1.8)
     fiber-annotation (0.2.0)
     fiber-local (1.1.0)
       fiber-storage

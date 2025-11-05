@@ -1,4 +1,5 @@
 .env.local
+*/.env.*
 docker-compose.dev.yml
 dev/**
 *.iml

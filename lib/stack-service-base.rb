@@ -6,6 +6,11 @@ require 'stack-service-base/nats_service'
 require 'stack-service-base/sinatra_ext'
 require 'stack-service-base/debugger'
 
+unless defined? RSpec
+  require 'dotenv'
+  Dotenv.load '.env.local' if File.exist? '.env.local'
+end
+
 module StackServiceBase
   class << self
     def rack_setup app
