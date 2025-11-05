@@ -49,4 +49,10 @@ RSpec.configure do |config|
     ENV['APP_ENV'] = "test"
     RSpec.configuration.app = Rack::Builder.parse_file(File.expand_path('config.ru'))
   end
+
+  config.after(:suite) do
+    return unless RSpec.configuration.pg_container
+    RSpec.configuration.pg_container.stop
+    RSpec.configuration.pg_container.delete
+  end
 end
