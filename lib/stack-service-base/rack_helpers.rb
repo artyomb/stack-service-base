@@ -169,8 +169,11 @@ module RackHelpers
       end if defined? GrapeSwagger::DocMethods::ParseParams
 
       app.use Rack.middleware_klass do |env, app|
-        # env['REQUEST_PATH'] == '/healthcheck' ? [200, {}, ['Healthy']] : app.call(env)
-        env['PATH_INFO'] == '/healthcheck' ? [200, {'Content-Type' =>'application/json'}, [{ Status: 'Healthy' }.to_json ]] : app.call(env)
+        code, headers, body = env['REQUEST_METHOD'] == 'OPTIONS' ? [200, {}, []] : app.call(env)
+        if code == 404 && env['PATH_INFO'] == '/healthcheck'
+          code, headers, body = [200, {'Content-Type' =>'application/json'}, [{ Status: 'Healthy' }.to_json ]]
+        end
+        [code, headers, body]
       end
 
       if defined? OpenTelemetry::Instrumentation::Rack::Instrumentation
