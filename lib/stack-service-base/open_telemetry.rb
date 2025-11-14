@@ -14,7 +14,8 @@ $stdout.puts "OTEL_ENABLED: #{OTEL_ENABLED}"
 if OTEL_ENABLED
   STACK_NAME = ENV['STACK_NAME'] || 'undefined_stack'
   SERVICE_NAME = ENV['STACK_SERVICE_NAME'] || 'undefined_service'
-  ENV['OTEL_RESOURCE_ATTRIBUTES'] ||= "deployment.environment=#{STACK_NAME},service.name=#{SERVICE_NAME}"
+  HOSTNAME=ENV['HOSTNAME'] || 'undefined'
+  ENV['OTEL_RESOURCE_ATTRIBUTES'] ||= "deployment.environment=#{STACK_NAME},service.name=#{SERVICE_NAME},hostname=#{HOSTNAME}"
   ENV.select{ |k,v| k =~ /OTEL/}.each { |k,v| $stdout.puts "#{k}: #{v}"}
 
   require 'opentelemetry/sdk'
