@@ -14,6 +14,8 @@ module RpcErrorHelpers
 end
 
 class McpProcessor
+  PROTOCOL_VERSION = '2025-06-18'
+
   include RpcErrorHelpers
   ParseError = Class.new(StandardError) do
     attr_reader :body, :status
@@ -54,16 +56,38 @@ class McpProcessor
   end
 
   def rpc_response(id:, method:, params:)
-    json_rpc_response(id: id) { handle(method: method, params: params) }
+    json_rpc_response(id: id) { |body| handle(method: method, params: params, body: body) }
   end
 
-  def handle(method:, params:)
+  def handle(method:, params:, body: )
     case method
-    when "tools/list" then list_tools
-    when "tools/call" then call_tool(params || {})
+    when "tools/list"  then list_tools
+    when "tools/call"  then call_tool(params || {})
+    when "initialize"  then initialize_(body)
+    when "initialized" then {}
     else
       rpc_error!(-32601, "Unknown method #{method}")
     end
+  end
+
+  # https://gist.github.com/ruvnet/7b6843c457822cbcf42fc4aa635eadbb
+
+  def initialize_(body)
+    body[:serverInfo] = {
+      name: 'mcp-server',
+      title: 'MCP Server',
+      version: '1.0.0'
+    }
+    # result
+    {
+      protocolVersion: PROTOCOL_VERSION,
+      capabilities: {
+        logging: {},
+        prompts: { listChanged: false },
+        resources: { listChanged: false },
+        tools: { listChanged: false }
+      }
+    }
   end
 
   private

@@ -11,6 +11,30 @@ RSpec.describe 'Integration Tests' do
   describe 'Tool registry' do
     let(:headers) { { 'CONTENT_TYPE' => 'application/json' } }
 
+    it 'initializes the client session' do
+      response = rpc_request(
+        id: 10,
+        method: 'initialize',
+        params: {}
+      )
+
+      expect(response['id']).to eq(10)
+      expect(response['serverInfo']).to include(
+        'name' => 'mcp-server',
+        'title' => 'MCP Server',
+        'version' => '1.0.0'
+      )
+
+      result = response['result']
+      expect(result['protocolVersion']).to eq(McpProcessor::PROTOCOL_VERSION)
+      expect(result['capabilities']).to include(
+        'logging' => {},
+        'prompts' => { 'listChanged' => false },
+        'resources' => { 'listChanged' => false },
+        'tools' => { 'listChanged' => false }
+      )
+    end
+
     it 'lists tools via GET /' do
       get '/'
       expect(last_response.status).to eq(200)

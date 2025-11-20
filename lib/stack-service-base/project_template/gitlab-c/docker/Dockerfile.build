@@ -8,7 +8,7 @@ COPY . .
 
 CMD ["bash", "-c", "-x", "\
     env && cd /build/docker && \
-    build-labels -n -c docker-compose.yml gitlab set_version to_dockerfiles to_compose | tee bake.yml && \
+    build-labels -n -c docker-compose.yml changed gitlab set_version to_dockerfiles to_compose | tee bake.yml && \
     export OTEL_RESOURCE_ATTRIBUTES=service.name=docker-builder,pipeline.id=${CI_PIPELINE_ID},project.name=${CI_PROJECT_NAME} && \
     export REGISTRY_HOST=$CI_REGISTRY_HOST && \
     grep \"services: {}\" bake.yml || docker buildx bake -f bake.yml $([ -z \"$CI_SKIP_PUSH\" ] && echo \"--push\") && \
