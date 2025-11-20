@@ -18,6 +18,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'opentelemetry-sdk'
   s.add_dependency 'opentelemetry-exporter-otlp'
   s.add_dependency 'opentelemetry-instrumentation-all'
+  s.add_dependency 'opentelemetry-logs-api'
+  s.add_dependency 'opentelemetry-logs-sdk'
+  s.add_dependency 'opentelemetry-exporter-otlp-logs'
   s.add_dependency 'nats-pure'
   s.add_dependency 'websocket'
   s.add_dependency 'debug'
@@ -29,6 +32,15 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rubocop-rake", "~> 0.6.0"
   s.add_development_dependency "rubocop-rspec", "~> 2.14.2"
   s.add_development_dependency "rspec_junit_formatter", "~> 0.5.1"
+  s.add_development_dependency "rspec-benchmark"
+  s.add_development_dependency "rack-test"
+  s.add_development_dependency "async-rspec"
+  s.add_development_dependency "rspec-snapshot"
+  s.add_development_dependency "testcontainers"
+  s.add_development_dependency "simplecov"
+  s.add_development_dependency "sinatra"
+  s.add_development_dependency "slim"
+
 
 end
 

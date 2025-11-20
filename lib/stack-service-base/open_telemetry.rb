@@ -2,6 +2,7 @@ require 'async'
 
 ENV['OTEL_LOG_LEVEL'] ||= 'debug'
 ENV['OTEL_TRACES_EXPORTER'] ||= 'console,otlp'
+ENV['OTEL_LOGS_EXPORTER'] ||= 'otlp,console'
 
 unless defined? OTEL_ENABLED
   OTEL_ENABLED = !ENV['OTEL_EXPORTER_OTLP_ENDPOINT'].to_s.empty?
@@ -22,6 +23,9 @@ if OTEL_ENABLED
   require 'opentelemetry/exporter/otlp'
   require 'opentelemetry/instrumentation/all'
   require 'opentelemetry-api'
+  require 'opentelemetry-sdk'
+  require 'opentelemetry-logs-sdk'
+  require 'opentelemetry-exporter-otlp-logs'
 end
 
 if defined? Async and OTEL_ENABLED
@@ -76,9 +80,21 @@ def otel_initialize
     # c.service_name = SERVICE_NAME
   end
 
+  # Logs API
+  # ENV['OTEL_LOGS_EXPORTER'] = 'otlp,console' # Export logs to the console ,console
+  if ENV['OTEL_LOGS_EXPORTER'] =~ /console/
+    processor = OpenTelemetry::SDK::Logs::Export::SimpleLogRecordProcessor.new(OpenTelemetry::SDK::Logs::Export::ConsoleLogRecordExporter.new)
+    OpenTelemetry.logger_provider.add_log_record_processor(processor)
+  end
+
+  # Access a Logger for your library from the LoggerProvider configured by the OpenTelemetry API
+  logger = OpenTelemetry.logger_provider.logger(name: SERVICE_NAME, version: '0.1.0')
+  logger.on_emit( timestamp: Time.now, severity_text: 'INFO', body: 'Log provider initialized ', attributes: { 'ready' => true } )
+
   at_exit do
     OpenTelemetry.tracer_provider.force_flush
     OpenTelemetry.tracer_provider.shutdown
+    OpenTelemetry.logger_provider.shutdown
   end
 
   $tracer_ = OpenTelemetry.tracer_provider.tracer(SERVICE_NAME)
