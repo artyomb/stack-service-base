@@ -117,6 +117,7 @@ module RackHelpers
   # end
 
   Rack.define_middleware :HeadersLogger do |env, app, opts|
+    LOGGER.info env.select { %w'REQUEST_METHOD REQUEST_PATH REQUEST_URI QUERY_STRING'.include? _1 }
     LOGGER.info env.select { _1 =~ /HTTP/ }.transform_keys { _1.gsub 'HTTP_', '' }
     status, headers, body =app.call env
 
