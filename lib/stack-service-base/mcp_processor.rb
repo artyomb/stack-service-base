@@ -44,7 +44,7 @@ class McpProcessor
   end
 
   def list_tools
-    { tools: ToolRegistry.list, nextCursor: nil }
+    { tools: ToolRegistry.list, nextCursor: 'no-more' }
   end
 
   def root_response
@@ -62,9 +62,12 @@ class McpProcessor
   def handle(method:, params:, body: )
     case method
     when "tools/list"  then list_tools
+    # when "resources/list"  then {}
+    # when "prompts/list"  then {}
     when "tools/call"  then call_tool(params || {})
     when "initialize"  then initialize_(body)
-    when "initialized" then {}
+    when "notifications/initialized" then LOGGER.debug params; {}
+    when "logging/setLevel" then LOGGER.debug params; {}
     else
       rpc_error!(-32601, "Unknown method #{method}")
     end
@@ -73,13 +76,12 @@ class McpProcessor
   # https://gist.github.com/ruvnet/7b6843c457822cbcf42fc4aa635eadbb
 
   def initialize_(body)
-    body[:serverInfo] = {
-      name: 'mcp-server',
-      title: 'MCP Server',
-      version: '1.0.0'
-    }
-    # result
     {
+      serverInfo: {
+        name: 'mcp-server',
+        title: 'MCP Server',
+        version: '1.0.0'
+      },
       protocolVersion: PROTOCOL_VERSION,
       capabilities: {
         logging: {},

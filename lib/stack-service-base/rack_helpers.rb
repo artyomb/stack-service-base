@@ -195,16 +195,21 @@ module RackHelpers
       end
 
       app.use Rack.middleware_klass do |env, app|
-        code, headers, body = env['REQUEST_METHOD'] == 'OPTIONS' ? [200, {}, []] : app.call(env)
+        code, headers, body = env['REQUEST_METHOD'] == 'OPTIONS' ? [204, {}, []] : app.call(env)
 
         # scheme = env['rack.url_scheme']
         # referer = URI.parse env['HTTP_REFERER']
+        origin = env['HTTP_ORIGIN'] || '*'
         headers.merge!(
           # 'Access-Control-Allow-Origin' => "#{referer.scheme}://#{referer.host}",
-          'Access-Control-Allow-Origin' => '*',
+          'Access-Control-Allow-Origin' => origin,
+          'Vary' => 'Orign',
           'Access-Control-Allow-Methods' => 'GET, PUT, POST, PATCH, DELETE, HEAD, OPTIONS',
           'Access-Control-Allow-Headers' => '*',
-          'Access-Control-Allow-Credentials' => 'true')
+          'Access-Control-Expose-Headers' => '*', # 'mcp-session-id'
+          'Access-Control-Allow-Credentials' => 'true',
+          'Access-Control-Max-Age' => '6000'
+        )
         [code, headers, body]
       end
 
