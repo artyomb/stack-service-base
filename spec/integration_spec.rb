@@ -19,26 +19,27 @@ RSpec.describe 'Integration Tests' do
       )
 
       expect(response['id']).to eq(10)
-      expect(response['serverInfo']).to include(
-        'name' => 'mcp-server',
-        'title' => 'MCP Server',
-        'version' => '1.0.0'
-      )
-
       result = response['result']
+
+      expect(result['serverInfo']).to include(
+                                        'name' => 'mcp-server',
+                                        'title' => 'MCP Server',
+                                        'version' => '1.0.0'
+                                      )
+
       expect(result['protocolVersion']).to eq(McpProcessor::PROTOCOL_VERSION)
       expect(result['capabilities']).to include(
-        'logging' => {},
-        'prompts' => { 'listChanged' => false },
-        'resources' => { 'listChanged' => false },
-        'tools' => { 'listChanged' => false }
-      )
+                                          'logging' => {},
+                                          'prompts' => { 'listChanged' => false },
+                                          'resources' => { 'listChanged' => false },
+                                          'tools' => { 'listChanged' => false }
+                                        )
     end
 
-    it 'lists tools via GET /' do
-      get '/'
+    it 'lists tools via GET /mcp' do
+      get '/mcp'
       expect(last_response.status).to eq(200)
-      body = JSON.parse(last_response.body)
+      body = parsed_response_body
       expect(body['id']).to be_nil
       expect(body.dig('result', 'tools').map { |tool| tool['name'] }).to include('service_status', 'restart_service')
     end
@@ -56,7 +57,9 @@ RSpec.describe 'Integration Tests' do
         method: 'tools/call',
         params: { 'name' => 'service_status', 'arguments' => { 'service_name' => 'database-backend' } }
       )
-      tool_result = response.dig('result', 'toolResult')
+      tool_results = response.dig('result', 'content')
+      expect(tool_results[0]['type']).to eq('text')
+      tool_result = JSON.parse tool_results[0]['text']
       expect(tool_result['service_name']).to eq('database-backend')
       expect(tool_result['status']).to eq('running')
     end
@@ -82,16 +85,25 @@ RSpec.describe 'Integration Tests' do
     end
 
     it 'handles malformed JSON payloads' do
-      post '/', '{invalid', headers
+      post '/mcp', '{invalid', headers
       expect(last_response.status).to eq(400)
-      body = JSON.parse(last_response.body)
+      body = parsed_response_body
       expect(body.dig('error', 'code')).to eq(-32700)
     end
 
     def rpc_request(payload)
-      post '/', JSON.dump(payload), headers
+      post '/mcp', JSON.dump(payload), headers
       expect(last_response.status).to eq(200)
-      JSON.parse(last_response.body)
+      parsed_response_body
+    end
+
+    def parsed_response_body
+      body = +''
+      last_response.each { |chunk| body << chunk.to_s }
+      data_lines = body.lines.select { |line| line.start_with?('data:') }
+      payload_line = data_lines.reverse.find { |l| l !~ /ping/i } || data_lines.last
+      payload = (payload_line || body).sub(/\Adata:\s*/, '').sub(/\n\z/, '')
+      JSON.parse(payload)
     end
   end
 end
