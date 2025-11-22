@@ -115,6 +115,12 @@ class McpProcessor
     name      = params["name"]
     arguments = params["arguments"] || {}
     tool      = ToolRegistry.fetch(name) || rpc_error!(-32601, "Unknown tool #{name}")
-    tool.call(arguments)
+    response = tool.call(arguments)
+    {
+      content: [
+        { "type": "text", "text": response.is_a?(String) ? response : response.to_json }
+      ],
+      isError: false
+    }
   end
 end
