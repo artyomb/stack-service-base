@@ -30,10 +30,10 @@ module ToolRegistry
         properties[field] = cfg.transform_keys(&:to_s)
       end
 
-      { type: "object", properties: properties, required: required }
+      { type: 'object', properties: properties, required: required }
     end
 
-    def execute(&block) = @executor = block
+    def call(&block) = @executor = block
 
     def to_h
       {
@@ -43,7 +43,7 @@ module ToolRegistry
       }
     end
 
-    def call(arguments)
+    def call_tool(arguments)
       raise JsonRpcError.new(code: 500, message: "Tool #{name} missing executor") unless @executor
 
       ExecutionContext.new.instance_exec(symbolize_keys(arguments || {}), &@executor)

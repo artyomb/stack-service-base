@@ -12,7 +12,7 @@ module McpHelper
         err.body
       end
 
-      get  '/mcp' do
+      get '/mcp' do
         content_type :json
         MCP_PROCESSOR.root_endpoint
       end

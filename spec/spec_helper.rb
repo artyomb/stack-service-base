@@ -11,6 +11,7 @@ require 'rack/builder'
 require "rspec/snapshot"
 require 'testcontainers'
 require 'simplecov'
+require 'stack-service-base/mcp/rack_test_mcp_protocol'
 SimpleCov.start
 
 #ENV['DB_URL'] = 'sqlite::memory:'
@@ -25,6 +26,7 @@ RSpec.configure do |config|
   config.include RSpec::Benchmark::Matchers
   config.include RSpec::Snapshot
   config.include_context Async::RSpec::Reactor
+  config.include Rack::Test::McpProtocol
   config.add_setting :pg_container
   config.add_setting :app
 
