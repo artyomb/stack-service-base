@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'opentelemetry-logs-sdk'
   s.add_dependency 'opentelemetry-exporter-otlp-logs'
   s.add_dependency 'nats-pure'
+  s.add_dependency 'nkeys'
   s.add_dependency 'websocket'
   s.add_dependency 'debug'
   s.add_dependency 'dotenv'
