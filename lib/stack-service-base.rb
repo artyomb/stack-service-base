@@ -71,8 +71,17 @@ module StackServiceBase
           end
 
           Sequel.singleton_class.prepend(mod)
-          # ---
-          #
+
+          require 'sequel/adapters/postgres'
+          PG::Connection.singleton_class.prepend(Module.new{
+            def connect_to_hosts(*args)
+              stack_name = ENV['STACK_NAME'] || 'undefined_stack'
+              service_name = ENV['STACK_SERVICE_NAME'] || 'undefined_service'
+              args[0][:fallback_application_name] ||= "#{stack_name}_#{service_name}"
+              super *args
+            end
+          })
+
           require_relative 'stack-service-base/fiber_pool'
         end
       end
