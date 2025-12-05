@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.files = Dir.glob('{bin,lib,test,examples}/**/*', File::FNM_DOTMATCH).reject {File.directory?(_1) }
   s.require_paths = ['lib']
-  s.required_ruby_version = ">= " + File.read(File.dirname(__FILE__)+'/.ruby-version').strip
+  #s.required_ruby_version = ">= " + File.read(File.dirname(__FILE__)+'/.ruby-version').strip
 
   s.add_dependency 'rack'
   s.add_dependency 'async'
