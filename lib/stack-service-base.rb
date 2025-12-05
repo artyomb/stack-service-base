@@ -5,6 +5,7 @@ require 'stack-service-base/open_telemetry'
 require 'stack-service-base/nats_service'
 require 'stack-service-base/sinatra_ext'
 require 'stack-service-base/debugger'
+require 'stack-service-base/async_helpers'
 
 unless defined? RSpec
   require 'dotenv'
