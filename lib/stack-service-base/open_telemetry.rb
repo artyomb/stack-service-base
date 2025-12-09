@@ -38,7 +38,7 @@ if defined? Async and OTEL_ENABLED
           block.call t, *arguments
         end
       }
-      super reactor, parent, logger: nil, finished: , **options, &block_otl
+      super reactor, parent, logger: , finished: , **options, &block_otl
     end
   end
 
