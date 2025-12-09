@@ -4,9 +4,18 @@ ENV['OTEL_LOG_LEVEL'] ||= 'debug'
 ENV['OTEL_TRACES_EXPORTER'] ||= 'console,otlp'
 ENV['OTEL_LOGS_EXPORTER'] ||= 'otlp,console'
 
+class Otel
+  class << self
+    attr_accessor :enabled # To temporally disable Otel
+  end
+end
+
 unless defined? OTEL_ENABLED
   OTEL_ENABLED = !ENV['OTEL_EXPORTER_OTLP_ENDPOINT'].to_s.empty?
 end
+
+Otel.enabled = OTEL_ENABLED
+
 $stdout.puts "OTEL_ENABLED: #{OTEL_ENABLED}"
 
 # require 'async'
@@ -142,7 +151,7 @@ end
 
 def otl_span(name, attributes = {})
   # span_ = OpenTelemetry::Trace.current_span
-  return yield(nil) unless OTEL_ENABLED
+  return yield(nil) unless OTEL_ENABLED && Otel.enabled
 
   return yield(nil) unless $tracer_
   $tracer_&.in_span(name, attributes: flatten_hash(attributes.transform_keys(&:to_s).transform_values{_1 || 'n/a'}) ) do |span|
@@ -151,7 +160,7 @@ def otl_span(name, attributes = {})
 end
 
 def otl_current_span
-  return unless OTEL_ENABLED
+  return unless OTEL_ENABLED && Otel.enabled
   yield OpenTelemetry::Trace.current_span
 end
 
@@ -161,7 +170,7 @@ end
 # end
 
 def otl_traceparent_id
-    return nil unless OTEL_ENABLED
+    return nil unless OTEL_ENABLED && Otel.enabled
 
     span_context = OpenTelemetry::Trace.current_span.context
     trace_id = span_context.trace_id.unpack1('H*')
