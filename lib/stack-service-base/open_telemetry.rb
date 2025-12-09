@@ -30,7 +30,7 @@ end
 
 if defined? Async and OTEL_ENABLED
   module AsyncTaskOTELPatch
-    def initialize(parent = Task.current?, finished: nil, **options, &block)
+    def initialize(reactor, parent = Async::Task.current?, logger: nil, finished: nil, **options, &block)
       ctx_ = OpenTelemetry::Context.current
 
       block_otl = ->(t, *arguments){
@@ -38,7 +38,7 @@ if defined? Async and OTEL_ENABLED
           block.call t, *arguments
         end
       }
-      super parent, finished: , **options, &block_otl
+      super reactor, parent, logger: nil, finished: , **options, &block_otl
     end
   end
 
