@@ -14,6 +14,48 @@ require 'stack-service-base/async_helpers'
 
 module StackServiceBase
   class << self
+    def pre_init()
+      if defined? Sequel
+        require 'stack-service-base/database'
+
+        Sequel::Database.after_initialize { _1.loggers << LOGGER }
+
+        attempts= 10
+        sleep_interval= 1
+
+        mod = Module.new do
+          define_method(:connect) do |*args, **opts, &blk|
+            tries = attempts
+            begin
+              super(*args, **opts, &blk)
+            rescue Sequel::DatabaseConnectionError, Sequel::DatabaseError => e
+              if (tries -= 1) > 0
+                LOGGER.warn "DB connect failed (#{e.message}), retrying in #{sleep_interval}s… (#{tries} left)"
+                sleep sleep_interval
+                retry
+              end
+              raise
+            end
+          end
+        end
+
+        Sequel.singleton_class.prepend(mod)
+
+        require 'sequel/adapters/postgres'
+        PG::Connection.singleton_class.prepend(Module.new{
+          def connect_to_hosts(*args)
+            stack_name = ENV['STACK_NAME'] || 'undefined_stack'
+            service_name = ENV['STACK_SERVICE_NAME'] || 'undefined_service'
+            args[0][:fallback_application_name] ||= "#{stack_name}_#{service_name}"
+            super *args
+          end
+        })
+
+        require_relative 'stack-service-base/fiber_pool'
+      end
+      @pre_init = :done
+    end
+
     def rack_setup app
       # skip if called within Rspec task
       # TODO: warn if called not within Rspec task but with a wrong app class
@@ -30,15 +72,6 @@ module StackServiceBase
 
         RackHelpers.rack_setup app
 
-        # Sinatra?
-        # disable :show_exceptions unless ENV['DEBUG']
-        # error do
-        #   status 500
-        #   $stderr.puts "Exception: #{env['sinatra.error']}"
-        #   $stderr.puts "Exception backtrace: #{env['sinatra.error'].backtrace[0..10].join("\n")}"
-        #   { error: "Internal server error", message: env['sinatra.error'].message }.to_json
-        # end
-
         if ENV.fetch('PROMETHEUS_METRICS_EXPORT', 'true') == 'true'
           require 'stack-service-base/prometheus'
 
@@ -47,44 +80,15 @@ module StackServiceBase
           use Prometheus::Middleware::Exporter
         end
 
-        if defined? Sequel
-          require 'stack-service-base/database'
-
-          Sequel::Database.after_initialize { _1.loggers << LOGGER }
-
-          attempts= 10
-          sleep_interval= 1
-
-          mod = Module.new do
-            define_method(:connect) do |*args, **opts, &blk|
-              tries = attempts
-              begin
-                super(*args, **opts, &blk)
-              rescue Sequel::DatabaseConnectionError, Sequel::DatabaseError => e
-                if (tries -= 1) > 0
-                  LOGGER.warn "DB connect failed (#{e.message}), retrying in #{sleep_interval}s… (#{tries} left)"
-                  sleep sleep_interval
-                  retry
-                end
-                raise
-              end
-            end
-          end
-
-          Sequel.singleton_class.prepend(mod)
-
-          require 'sequel/adapters/postgres'
-          PG::Connection.singleton_class.prepend(Module.new{
-            def connect_to_hosts(*args)
-              stack_name = ENV['STACK_NAME'] || 'undefined_stack'
-              service_name = ENV['STACK_SERVICE_NAME'] || 'undefined_service'
-              args[0][:fallback_application_name] ||= "#{stack_name}_#{service_name}"
-              super *args
-            end
-          })
-
-          require_relative 'stack-service-base/fiber_pool'
-        end
+        # Sinatra?
+        # disable :show_exceptions unless ENV['DEBUG']
+        # error do
+        #   status 500
+        #   $stderr.puts "Exception: #{env['sinatra.error']}"
+        #   $stderr.puts "Exception backtrace: #{env['sinatra.error'].backtrace[0..10].join("\n")}"
+        #   { error: "Internal server error", message: env['sinatra.error'].message }.to_json
+        # end
+        StackServiceBase.pre_init unless @pre_init == :done
       end
     end
   end
