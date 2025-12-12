@@ -149,7 +149,39 @@ if defined? Sequel and OTEL_ENABLED
   end
 end
 
-def otl_span(name, attributes = {})
+
+# Thread.otl_new do
+# ...
+# end
+
+class << Thread
+  alias_method :_otel_original_new, :new
+
+  if OTEL_ENABLED
+    def otl_new(*args, **kwargs, &block)
+      ctx = OpenTelemetry::Context.current
+
+      _otel_original_new(*args, **kwargs) do |*bargs|
+        OpenTelemetry::Context.with_current(ctx) do
+          block.call(*bargs)
+        end
+      end
+    end
+  else
+    alias_method :otl_new, :new
+  end
+end
+
+def otl_span_thread(name, attributes = {}, &block)
+  ctx_ = OpenTelemetry::Context.current
+  Thread.new do
+    OpenTelemetry::Context.with_current(ctx_) do
+      otl_span(name, attributes, &block)
+    end
+  end
+end
+
+def otl_span(name, attributes = {}, &block)
   # span_ = OpenTelemetry::Trace.current_span
   return yield(nil) unless OTEL_ENABLED && Otel.enabled
 
@@ -170,13 +202,13 @@ end
 # end
 
 def otl_traceparent_id
-    return nil unless OTEL_ENABLED && Otel.enabled
+  return nil unless OTEL_ENABLED && Otel.enabled
 
-    span_context = OpenTelemetry::Trace.current_span.context
-    trace_id = span_context.trace_id.unpack1('H*')
-    span_id = span_context.span_id.unpack1('H*')
-    trace_flags = format('%02x', span_context.trace_flags.instance_eval{ @flags }) # Two-digit hex for trace flags (e.g., sampled)
-    "00-#{trace_id}-#{span_id}-#{trace_flags}"
+  span_context = OpenTelemetry::Trace.current_span.context
+  trace_id = span_context.trace_id.unpack1('H*')
+  span_id = span_context.span_id.unpack1('H*')
+  trace_flags = format('%02x', span_context.trace_flags.instance_eval{ @flags }) # Two-digit hex for trace flags (e.g., sampled)
+  "00-#{trace_id}-#{span_id}-#{trace_flags}"
 end
 
 def otl_def(name)
