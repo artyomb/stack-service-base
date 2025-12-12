@@ -37,9 +37,28 @@ if OTEL_ENABLED
   require 'opentelemetry-exporter-otlp-logs'
 end
 
+if false
+  # TODO: disable Faraday spans for the given Threads
+  #   debug and test
+
+  if defined? OpenTelemetry::Instrumentation::Faraday::Middlewares::Stable::TracerMiddleware
+    class OpenTelemetry::Instrumentation::Faraday::Middlewares::Stable::TracerMiddlewareTracerMiddleware
+      alias_method :_original_call, :call
+      def call(env)
+        if Thread.current[:disable_faraday] == true
+          app.call env
+        else
+          _original_call(env)
+        end
+      end
+    end
+  end
+
+end
+
 if defined? Async and OTEL_ENABLED
   module AsyncTaskOTELPatch
-    def initialize(reactor, parent = Async::Task.current?, logger: nil, finished: nil, **options, &block)
+    def initialize(*pos, **kw, &block)
       ctx_ = OpenTelemetry::Context.current
 
       block_otl = ->(t, *arguments){
@@ -47,7 +66,7 @@ if defined? Async and OTEL_ENABLED
           block.call t, *arguments
         end
       }
-      super reactor, parent, logger: , finished: , **options, &block_otl
+      super(*pos, **kw, &block_otl)
     end
   end
 
