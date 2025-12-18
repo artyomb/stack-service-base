@@ -1,6 +1,6 @@
 FROM ruby:3.3.0-alpine3.19  AS base
 RUN apk add --update bash docker-cli-buildx docker-cli-compose git
-RUN gem install build-labels:0.0.68 dry-stack:0.1.16
+RUN gem install build-labels:0.0.70 dry-stack:0.1.16
 
 FROM base AS runner
 WORKDIR /build

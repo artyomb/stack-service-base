@@ -210,6 +210,7 @@ def otl_span(name, attributes = {}, &block)
   end
 end
 
+# otl_current_span { _1.def add_attributes(otl_traceparent_id: otl_traceparent_id) }
 def otl_current_span
   return unless OTEL_ENABLED && Otel.enabled
   yield OpenTelemetry::Trace.current_span
