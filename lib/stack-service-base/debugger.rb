@@ -1,6 +1,6 @@
 PERFORMANCE = ENV.fetch('PERFORMANCE', 'false') == 'true' unless defined? PERFORMANCE
 
-unless ENV['RUBYOPT'] =~ /ruby-debug-ide/ || PERFORMANCE # if defined?(::DEBUGGER__)
+unless ENV['RUBYOPT'] =~ /ruby-debug-ide/ || ENV['NO_RT_DEBUG'] || PERFORMANCE # if defined?(::DEBUGGER__)
 
   ENV['RUBY_DEBUG_CHROME_PATH'] = ''
   ENV['RUBY_DEBUG_PORT'] = '12000'
