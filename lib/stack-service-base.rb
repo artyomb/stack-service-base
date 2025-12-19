@@ -11,6 +11,7 @@ require 'stack-service-base/nats_service'
 require 'stack-service-base/sinatra_ext'
 require 'stack-service-base/debugger'
 require 'stack-service-base/async_helpers'
+require 'stack-service-base/socket_trace'
 
 module StackServiceBase
   class << self
