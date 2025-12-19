@@ -1,7 +1,8 @@
 module StackServiceBase
   module SocketTrace
     def bind(local_sockaddr)
-      LOGGER.info "Socket Bind: http://#{local_sockaddr.ip_address}:#{local_sockaddr.ip_port}"
+      addr = Addrinfo.new(local_sockaddr)
+      LOGGER.info "Socket Bind: http://#{arrd.ip_address}:#{addr.ip_port}"
       super
     end
     def setsockopt(level, optname, optval)
