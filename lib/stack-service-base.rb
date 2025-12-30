@@ -48,8 +48,9 @@ module StackServiceBase
             stack_name = ENV['STACK_NAME'] || 'undefined_stack'
             service_name = ENV['STACK_SERVICE_NAME'] || 'undefined_service'
             ar = args.dup
-            ar[0] ||= {}
-            ar[0][:fallback_application_name] ||= "#{stack_name}_#{service_name}"
+            unless ar[0].is_a? String
+              ar[0][:fallback_application_name] ||= "#{stack_name}_#{service_name}"
+            end
             super(*ar)
           end
         })
