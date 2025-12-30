@@ -19,7 +19,8 @@ end
 
 class FiberConnectionPool < Sequel::ConnectionPool
   VALIDATION_TIMEOUT = 20
-  POOL_SIZE = 10
+  POOL_SIZE = ENV.fetch('DB_CONNECTION_POOL_SIZE', '10').to_i
+  LOGGER.info "DB_CONNECTION_POOL_SIZE: #{POOL_SIZE}"
 
   def initialize(db, opts = OPTS)
     otl_span "FiberConnectionPool.initialize" do |span|
