@@ -1,16 +1,17 @@
-FROM ruby:3.3.0-alpine3.19  AS base
-RUN apk add --update bash docker-cli-buildx docker-cli-compose git
-RUN gem install build-labels:0.0.70 dry-stack:0.1.16
+FROM ruby:3.4.4-slim-bookworm AS base
+RUN apt update && apt install -y --no-install-recommends bash git
+RUN gem install build-labels:0.0.75
+RUN install-docker-static
 
-FROM base AS runner
 WORKDIR /build
+
 COPY . .
 
 CMD ["bash", "-c", "-x", "\
     env && cd /build/docker && \
     build-labels -n -c docker-compose.yml changed gitlab set_version to_dockerfiles to_compose | tee bake.yml && \
     export OTEL_RESOURCE_ATTRIBUTES=service.name=docker-builder,pipeline.id=${CI_PIPELINE_ID},project.name=${CI_PROJECT_NAME} && \
-    export REGISTRY_HOST=$CI_REGISTRY_HOST && \
+    export REGISTRY_HOST=$CI_REGISTRY_HOST &&  export BUILDX_BAKE_ENTITLEMENTS_FS=0 && \
     grep \"services: {}\" bake.yml || docker buildx bake -f bake.yml $([ -z \"$CI_SKIP_PUSH\" ] && echo \"--push\") && \
     ([ \"$CI_BUILD_TARGET\" = \"tests\" ] && (docker-compose -f bake.yml down && docker-compose -f bake.yml up --force-recreate ) || true) \
     "]
