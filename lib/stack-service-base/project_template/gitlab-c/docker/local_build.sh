@@ -2,6 +2,7 @@ CI_PROJECT_NAME=${service_name}
 export CI_PIPELINE_ID=local
 export CI_PIPELINE_IID=0
 export CI_REGISTRY_HOST=localhost
+export CI_SKIP_PUSH=true
 
 #  -v /root/.docker:/root/.docker \
 docker run --rm --env-file <(env | grep ^CI_) \
