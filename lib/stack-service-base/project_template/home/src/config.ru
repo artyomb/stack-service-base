@@ -4,7 +4,7 @@ require 'stack-service-base'
 
 StackServiceBase.rack_setup self
 
-DB ||= Sequel.connect ENV.fetch('DB_URL')
+DB ||= Sequel.connect ENV.fetch('DB_URL') if ENV['DB_URL']
 
 # require Models ...
 # Dir["#{__dir__}/models/*"].each { require_relative _1 }
