@@ -225,10 +225,20 @@ def otl_traceparent_id
   return nil unless OTEL_ENABLED && Otel.enabled
 
   span_context = OpenTelemetry::Trace.current_span.context
-  trace_id = span_context.trace_id.unpack1('H*')
-  span_id = span_context.span_id.unpack1('H*')
-  trace_flags = format('%02x', span_context.trace_flags.instance_eval{ @flags }) # Two-digit hex for trace flags (e.g., sampled)
+  trace_id = span_context.hex_trace_id
+  span_id = span_context.hex_span_id
+  trace_flags = span_context.trace_flags.sampled? ? '01' : '00'
   "00-#{trace_id}-#{span_id}-#{trace_flags}"
+end
+
+def otl_span_from_traceparent(traceparent_id, name, attributes = {})
+  parent_ctx = OpenTelemetry.propagation.extract( 'traceparent' => traceparent_id )
+
+  OpenTelemetry::Context.with_current(parent_ctx) do
+    otl_span(name, attributes) do |span|
+      yield span if block_given?
+    end
+  end
 end
 
 def otl_def(name)
@@ -277,5 +287,4 @@ if defined? Safrano::Request and OTEL_ENABLED
     end
   end
 end
-
 
