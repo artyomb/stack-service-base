@@ -12,6 +12,7 @@ require 'stack-service-base/sinatra_ext'
 require 'stack-service-base/debugger'
 require 'stack-service-base/async_helpers'
 require 'stack-service-base/socket_trace'
+require 'stack-service-base/safe_exec'
 
 module StackServiceBase
   class << self

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    stack-service-base (0.0.91)
+    stack-service-base (0.0.93)
       async
       debug
       dotenv
