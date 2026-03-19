@@ -19,6 +19,7 @@ module StackServiceBase
     def pre_init()
       if defined? Sequel
         require 'stack-service-base/database'
+        Sequel.extension :fiber_concurrency
 
         Sequel::Database.after_initialize { _1.loggers << LOGGER }
 
