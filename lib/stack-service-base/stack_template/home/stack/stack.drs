@@ -1,3 +1,4 @@
+# vim: set syntax=ruby:
 Options name: 'stack-name'
 
 Service :service_name,  image: 'service_name/master', ports: 7000, ingress: { host: 'service_name.*' }

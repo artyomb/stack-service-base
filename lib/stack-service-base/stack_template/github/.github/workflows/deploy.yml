@@ -1,0 +1,50 @@
+on: { push: { branches: [master,main,release,dev] } }
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+      #  ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github_actions_deploy -N ""
+      #  cat ~/.ssh/github_actions_deploy.pub >> ~/.ssh/authorized_keys
+      #  chmod 600 ~/.ssh/authorized_keys
+      #  base64 -w 0 ~/.ssh/github_actions_deploy
+      DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ruby ruby-dev build-essential
+          sudo gem install dry-stack:0.1.54
+
+      - run: |
+          test -n "$DEPLOY_SERVER"
+          test -n "$DEPLOY_KEY"
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" | base64 -d > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          printf 'Host *\n\tBatchMode yes\n\tStrictHostKeyChecking no\n' > ~/.ssh/config
+          chmod 400 ~/.ssh/config
+
+      - run: |
+          if [ -n "$DOCKER_USERNAME" ] && [ -n "$DOCKER_PASSWORD" ]; then
+            registry="${DOCKER_REGISTRY:-docker.io}"
+            echo "$DOCKER_PASSWORD" | docker login "$registry" -u "$DOCKER_USERNAME" --password-stdin
+          else
+            echo "Skipping Docker registry login; DOCKER_USERNAME or DOCKER_PASSWORD is not set."
+          fi
+
+      - working-directory: stack
+        run: |
+          deploy_target="$DEPLOY_SERVER"
+          if ! printf '%s' "$deploy_target" | grep -q '@'; then
+            deploy_target="${DEPLOY_USER:-root}@${deploy_target}"
+          fi
+
+          dry-stack swarm_deploy -x "ssh://${deploy_target}" -- --prune --resolve-image=always < ruby-mitm-proxy.drs

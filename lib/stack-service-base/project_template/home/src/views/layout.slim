@@ -13,3 +13,4 @@ html
         font-family: "Courier New", monospace
   body
     == yield
+    span.version = "v " + (ENV['ORG_OPENCONTAINERS_IMAGE_VERSION'] || '0.0.0')
