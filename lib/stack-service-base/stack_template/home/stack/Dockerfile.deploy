@@ -1,6 +1,6 @@
 FROM ruby:3.4.4-slim-bookworm AS base
 RUN apt update && apt install -y --no-install-recommends openssh-client ca-certificates
-RUN gem install build-labels:0.0.76 dry-stack:0.1.54
+RUN gem install build-labels:0.0.76 dry-stack:0.1.56
 RUN install-docker-static # 28
 
 WORKDIR /build
@@ -8,6 +8,6 @@ RUN mkdir -p /root/.ssh && mkdir -pv /root/.ssh/sockets
 RUN printf 'Host *\n\tControlPersist yes\n\tControlMaster auto\n\tControlPath  /root/.ssh/sockets/%%r@%%h-%%p\n\tBatchMode yes\n\tStrictHostKeyChecking no\n\tPort 22\n' > /root/.ssh/config
 ADD . .
 
-CMD ["sh", "-c", "\
+CMD ["sh", "-c", "rparallel <<EOF \n\
     cat otlp.drs stack.drs  | dry-stack swarm_deploy --tls-domain=example.com -x ssh://example.com -- --prune \n\
-"]
+EOF\n"]
