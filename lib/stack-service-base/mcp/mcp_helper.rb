@@ -4,6 +4,21 @@ require_relative 'mcp_tool_registry'
 MCP_PROCESSOR = McpProcessor.new
 
 module McpHelper
+  VALID_TRANSPORTS = [:sse, :json].freeze
+
+  class << self
+    def transport
+      @transport ||= :sse
+    end
+
+    def transport=(value)
+      value = value.to_sym
+      raise ArgumentError, "Unknown MCP transport: #{value}" unless VALID_TRANSPORTS.include?(value)
+
+      @transport = value
+    end
+  end
+
   def self.included(base)
     base.class_eval do
 
@@ -18,28 +33,34 @@ module McpHelper
       end
 
       post '/mcp' do
-        content_type 'text/event-stream'
-        headers['Cache-Control'] = 'no-cache'
-        headers['X-Accel-Buffering'] = 'no'
-        headers['mcp-session-id'] = SecureRandom.uuid
         request.body&.rewind
-        body = request.body.read.to_s
 
         response_body =
           begin
-            MCP_PROCESSOR.rpc_endpoint(body)
+            MCP_PROCESSOR.rpc_endpoint(request.body.read.to_s)
           rescue McpProcessor::ParseError => e
             status e.status
             e.body
           end
 
-        LOGGER.debug "request body: #{body}"
-        LOGGER.debug "response body: #{response_body}"
+        if response_body.nil?
+          status 202
+          headers 'Content-Length' => '0'
+          ''
+        elsif McpHelper.transport == :json
+          content_type :json
+          response_body
+        else
+          content_type 'text/event-stream'
+          headers['Cache-Control'] = 'no-cache'
+          headers['X-Accel-Buffering'] = 'no'
+          headers['mcp-session-id'] = SecureRandom.uuid
 
-        stream true do |s|
-          s.callback { LOGGER.debug "stream closed: #{s}" }
-          s << "event: message\ndata: #{response_body}\n\n"
-          s.close
+          stream true do |s|
+            s.callback { LOGGER.debug "stream closed: #{s}" }
+            s << "event: message\ndata: #{response_body}\n\n"
+            s.close
+          end
         end
       end
     end

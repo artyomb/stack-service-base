@@ -32,6 +32,35 @@ Tool :fetch do
   end
 end
 
+Tool :schema_echo do
+  description 'Echo a value using a direct JSON schema'
+  input_schema type: "object",
+               properties: {
+                 value: { type: "string", description: "Value to echo" }
+               },
+               required: ["value"]
+  annotations readOnlyHint: true
+  call do |inputs|
+    { value: inputs[:value] }
+  end
+end
+
+Tool :full_response_echo do
+  description 'Echo a value using a complete MCP tool response'
+  input value: { type: "string", description: "Value to echo", required: true }
+  call do |inputs|
+    {
+      content: [
+        { type: "text", text: inputs[:value] }
+      ],
+      structuredContent: {
+        value: inputs[:value]
+      },
+      isError: false
+    }
+  end
+end
+
 Tool :service_status do
   description 'Check current status of a service'
   input service_name: { type: "string", description: "Service name to inspect", required: true }
