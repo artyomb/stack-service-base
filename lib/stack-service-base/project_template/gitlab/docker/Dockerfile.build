@@ -1,0 +1,36 @@
+FROM ruby:3.4.4-slim-bookworm AS base
+RUN apt-get update && apt-get install -y --no-install-recommends bash ca-certificates curl git tar \
+    && rm -rf /var/lib/apt/lists/*
+RUN gem install build-labels:0.0.79
+RUN BUILDX_VERSION=v0.20.1 COMPOSE_VERSION=v2.33.0 install-docker-static 27.5.1
+
+WORKDIR /build
+
+COPY .. .
+
+CMD ["bash", "-euo", "pipefail", "-c", "\
+    cd /build/docker; \
+    if [ -n \"${CI_REGISTRY:-}\" ] && [ -n \"${CI_REGISTRY_USER:-}\" ] && [ -n \"${CI_REGISTRY_PASSWORD:-}\" ]; then \
+      echo \"$CI_REGISTRY_PASSWORD\" | docker login \"$CI_REGISTRY\" -u \"$CI_REGISTRY_USER\" --password-stdin; \
+    fi; \
+    build-labels -n -c docker-compose.yml changed gitlab set_version cache to_dockerfiles to_compose | tee bake.yml; \
+    export OTEL_RESOURCE_ATTRIBUTES=\"service.name=docker-builder,pipeline.id=${CI_PIPELINE_ID:-local},project.name=${service_name}\"; \
+    export REGISTRY_HOST=\"${REGISTRY_HOST:-${CI_REGISTRY_HOST:-${CI_REGISTRY_IMAGE:-}}}\"; \
+    : \"${REGISTRY_HOST:?REGISTRY_HOST, CI_REGISTRY_IMAGE, or CI_REGISTRY_HOST is required}\"; \
+    export BUILDX_BAKE_ENTITLEMENTS_FS=0; \
+    if grep -q \"services: {}\" bake.yml; then \
+      echo \"No changed services to build.\"; \
+      exit 0; \
+    fi; \
+    docker buildx create --name \"${service_name}-builder\" --driver docker-container --use || docker buildx use \"${service_name}-builder\"; \
+    docker buildx inspect --bootstrap; \
+    if [ -n \"${CI_SKIP_PUSH:-}\" ]; then \
+      docker buildx bake --load --allow=fs.read=../src -f bake.yml; \
+    else \
+      docker buildx bake --push --allow=fs.read=../src -f bake.yml; \
+    fi; \
+    if [ \"${CI_BUILD_TARGET:-}\" = \"tests\" ]; then \
+      docker compose -f bake.yml down --remove-orphans; \
+      docker compose -f bake.yml up --no-build --force-recreate --abort-on-container-failure; \
+    fi \
+    "]

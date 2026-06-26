@@ -58,7 +58,7 @@ module McpHelper
 
           stream true do |s|
             s.callback { LOGGER.debug "stream closed: #{s}" }
-            s << "event: message\ndata: #{response_body}\n\n"
+            s << ['event: message', "data: #{response_body}", '', ''].join($/)
             s.close
           end
         end

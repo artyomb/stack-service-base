@@ -107,7 +107,7 @@ RSpec.describe 'Integration Tests' do
       registry = ToolRegistry::Registry.new
       registry.define(:custom_echo) do
         description 'Echo a value from a custom registry'
-        input value: { type: "string", required: true }
+        input value: { type: 'string', required: true }
         call { |inputs| { value: inputs[:value] } }
       end
 

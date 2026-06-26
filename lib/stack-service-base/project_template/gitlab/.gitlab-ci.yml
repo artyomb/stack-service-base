@@ -1,17 +1,48 @@
 stages:
+  - test
   - build
 
-build-job:
-  stage: build
-  image: docker:latest
+.build_block: &build_block
+#  tags: [ build ]
+  image: docker:27.5.1-cli
   services:
-    - docker:dind
+    - name: docker:27.5.1-dind
+      alias: docker
   variables:
-    DOCKER_TLS_CERTDIR: "/certs"
-
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
   script:
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA -t $CI_REGISTRY_IMAGE:latest -f docker/Dockerfile ./src
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE:latest
+    - export CI_COMMIT_TAG="${CI_COMMIT_TAG:-0.0.0}"
+    - |
+      if [ -n "${CI_REGISTRY:-}" ] && [ -n "${CI_REGISTRY_USER:-}" ] && [ -n "${CI_REGISTRY_PASSWORD:-}" ]; then
+        echo "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" -u "${CI_REGISTRY_USER}" --password-stdin
+      fi
+    - docker buildx create --name "${CI_PROJECT_NAME}-wrapper-builder" --driver docker-container --use || docker buildx use "${CI_PROJECT_NAME}-wrapper-builder"
+    - docker buildx inspect --bootstrap
+    - |
+      docker buildx build --load \
+        -t build/${CI_PROJECT_NAME} \
+        -f docker/Dockerfile.build \
+        --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}/ci-wrapper:${CI_COMMIT_REF_SLUG}-cache \
+        --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}/ci-wrapper:${CI_COMMIT_REF_SLUG}-cache,mode=max \
+        .
+    - docker run --rm `env | grep -o '^CI_[^=]*' | sed 's/^/-e /'`
+      -e REGISTRY_HOST=$CI_REGISTRY/$CI_PROJECT_NAMESPACE
+      -v /var/run/docker.sock:/var/run/docker.sock
+      -v /root/.docker:/root/.docker
+      build/${CI_PROJECT_NAME} 2>&1
+
+build push:
+  <<: *build_block
+  stage: build
+  needs: [ tests ]
+
+tests:
+  <<: *build_block
+  stage: test
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    CI_SKIP_PUSH: true
+    # build-labels sets target for each service in docker-compose.yml
+    CI_BUILD_TARGET: tests

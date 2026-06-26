@@ -81,7 +81,7 @@ module ToolRegistry
 
       @inputs.each do |field, config|
         cfg = stringify_keys(config)
-        required << field if cfg.delete("required")
+        required << field if cfg.delete('required')
         properties[field] = cfg
       end
 

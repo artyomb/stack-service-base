@@ -66,7 +66,9 @@ SSBase::CommandLine::COMMANDS[:init] = Class.new do
 
   def update_service_name(s_name)
     $stdout.puts "Update service name: #{s_name}"
-    Dir.glob('**/*').each do |file|
+    Dir.glob('**/{*,.*}', File::FNM_DOTMATCH).each do |file|
+      path_parts = file.split('/')
+      next if path_parts[0...-1].any? { |part| part.start_with?('.') }
       next unless File.file? file
       content = File.read(file)
       include = content.include?('${service_name}') ? '(found)' : nil
@@ -80,5 +82,3 @@ SSBase::CommandLine::COMMANDS[:init] = Class.new do
   def help = ['Create basic service file structure',
               '[... to_compose <deploy name>] ']
 end.new
-
-

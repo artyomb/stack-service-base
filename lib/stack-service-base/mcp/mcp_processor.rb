@@ -30,7 +30,7 @@ class McpProcessor
     def initialize(body:, status:)
       @body = body
       @status = status
-      super("MCP parse error")
+      super('MCP parse error')
     end
   end
 
@@ -46,17 +46,17 @@ class McpProcessor
 
   def rpc_endpoint(raw_body)
     req = JSON.parse(raw_body.to_s)
-    method = req["method"]
-    params = req["params"]
+    method = req['method']
+    params = req['params']
 
-    if req.key?("id")
-      rpc_response(id: req["id"], method: method, params: params)
+    if req.key?('id')
+      rpc_response(id: req['id'], method: method, params: params)
     else
       notification_response(method: method, params: params)
     end
   rescue JSON::ParserError => e
     @logger&.warn("MCP JSON parse failed: #{e.message}")
-    body = error_response(id: nil, code: -32700, message: "Parse error")
+    body = error_response(id: nil, code: -32_700, message: 'Parse error')
     raise ParseError.new(body: body, status: 400)
   end
 
@@ -86,21 +86,21 @@ class McpProcessor
 
   def handle(method:, params:)
     case method
-    when "tools/list"  then list_tools
-    # when "resources/list"  then {}
-    # when "prompts/list"  then {}
-    when "tools/call"  then call_tool(params || {})
-    when "initialize"  then initialize_response
-    when "notifications/initialized" then @logger&.debug(params); {}
-    when "logging/setLevel" then @logger&.debug(params); {}
+    when 'tools/list'  then list_tools
+    # when 'resources/list'  then {}
+    # when 'prompts/list'  then {}
+    when 'tools/call'  then call_tool(params || {})
+    when 'initialize'  then initialize_response
+    when 'notifications/initialized' then @logger&.debug(params); {}
+    when 'logging/setLevel' then @logger&.debug(params); {}
     else
-      rpc_error!(-32601, "Unknown method #{method}")
+      rpc_error!(-32_601, "Unknown method #{method}")
     end
   end
 
   def handle_notification(method:, params:)
     case method
-    when "notifications/initialized", "notifications/cancelled"
+    when 'notifications/initialized', 'notifications/cancelled'
       @logger&.debug("MCP notification accepted: #{method}")
     else
       @logger&.debug("MCP notification ignored: #{method}")
@@ -127,7 +127,7 @@ class McpProcessor
   private
 
   def json_rpc_response(id:)
-    body = { jsonrpc: "2.0", id: id }
+    body = { jsonrpc: '2.0', id: id }
 
     begin
       result = yield
@@ -136,7 +136,7 @@ class McpProcessor
       body[:error] = { code: e.code, message: e.message }
     rescue => e
       @logger&.error("Unhandled RPC error: #{e.class}: #{e.message}\n#{e.backtrace&.first}")
-      body[:error] = { code: -32603, message: "Internal error" }
+      body[:error] = { code: -32_603, message: 'Internal error' }
     end
 
     body.delete(:result) if body[:error]
@@ -144,9 +144,9 @@ class McpProcessor
   end
 
   def call_tool(params)
-    name      = params["name"]
-    arguments = params["arguments"] || {}
-    tool      = registry.fetch(name) || rpc_error!(-32601, "Unknown tool #{name}")
+    name      = params['name']
+    arguments = params['arguments'] || {}
+    tool      = registry.fetch(name) || rpc_error!(-32_601, "Unknown tool #{name}")
     response = tool.call_tool(arguments)
     return response if mcp_tool_response?(response)
 
@@ -160,7 +160,7 @@ class McpProcessor
   def mcp_tool_response?(response)
     return false unless response.is_a?(Hash)
 
-    [:content, :structuredContent, :isError, "content", "structuredContent", "isError"].any? do |key|
+    [:content, :structuredContent, :isError, 'content', 'structuredContent', 'isError'].any? do |key|
       response.key?(key)
     end
   end
@@ -168,7 +168,7 @@ class McpProcessor
   def wrap_tool_response(response)
     {
       content: [
-        { "type": "text", "text": response.is_a?(String) ? response : JSON.dump(response) }
+        { 'type' => 'text', 'text' => response.is_a?(String) ? response : JSON.dump(response) }
       ],
       isError: false
     }
