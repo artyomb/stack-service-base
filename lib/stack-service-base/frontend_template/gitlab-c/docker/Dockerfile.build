@@ -1,7 +1,7 @@
 FROM ruby:3.4.4-slim-bookworm AS base
 RUN apt update && apt install -y --no-install-recommends bash git
 RUN gem install build-labels:0.0.79
-RUN BUILDX_VERSION=v0.20.1 COMPOSE_VERSION=v2.33.0 install-docker-static 27.5.1
+RUN install-docker-static
 
 WORKDIR /build
 
@@ -12,6 +12,6 @@ CMD ["bash", "-c", "-x", "\
     build-labels -n -c docker-compose.yml changed gitlab set_version to_dockerfiles to_compose | tee bake.yml && \
     export OTEL_RESOURCE_ATTRIBUTES=service.name=docker-builder,pipeline.id=${CI_PIPELINE_ID},project.name=${CI_PROJECT_NAME} && \
     export REGISTRY_HOST=$CI_REGISTRY_HOST &&  export BUILDX_BAKE_ENTITLEMENTS_FS=0 && \
-    grep \"services: {}\" bake.yml || docker buildx bake -f bake.yml $([ -z \"$CI_SKIP_PUSH\" ] && echo \"--push\") && \
-    ([ \"$CI_BUILD_TARGET\" = \"tests\" ] && (docker compose -f bake.yml down && docker compose -f bake.yml up --force-recreate ) || true) \
+    (grep \"services: {}\" bake.yml || (docker buildx bake -f bake.yml $([ -z \"$CI_SKIP_PUSH\" ] && echo \"--push\") && \
+    ([ \"$CI_BUILD_TARGET\" != \"tests\" ] || (docker compose -f bake.yml down && docker compose -f bake.yml up --force-recreate --abort-on-container-failure )))) \
     "]

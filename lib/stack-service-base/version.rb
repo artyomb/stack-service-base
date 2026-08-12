@@ -1,3 +1,3 @@
 module StackServiceBase
-  VERSION = '0.0.103'
+  VERSION = '0.0.104'
 end
