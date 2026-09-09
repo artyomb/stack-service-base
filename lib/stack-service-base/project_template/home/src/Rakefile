@@ -1,4 +1,6 @@
 require 'rspec/core/rake_task'
+require 'json'
+require 'open3'
 
 RSpec::Core::RakeTask.new(:spec)
 
@@ -11,4 +13,38 @@ desc "Run tests with coverage"
 task :coverage do
   ENV['COVERAGE'] = 'true'
   Rake::Task[:spec].invoke
+end
+
+desc "Build and scan all Compose services with Trivy (default: deploy and tests; optional target: deploy or tests)"
+task :trivy, [:target] do |_, args|
+  targets = args[:target] ? [args[:target]] : %w[deploy tests]
+  abort "Trivy target must be deploy or tests" unless (targets - %w[deploy tests]).empty?
+
+  root = File.expand_path('..', __dir__)
+  scanner = ENV.fetch('TRIVY_IMAGE', 'aquasec/trivy:latest')
+
+  Dir.chdir(File.join(root, 'docker')) do
+    bake = %w[docker buildx bake --file docker-compose.yml]
+    config, status = Open3.capture2(*bake, '--print')
+    abort "Could not read Compose build configuration" unless status.success?
+    services = JSON.parse(config).fetch('target', {}).keys
+    abort "No buildable services found in docker-compose.yml" if services.empty?
+    sh 'docker', 'pull', scanner
+
+    targets.each do |target|
+      images = services.to_h { |service| [service, "local/#{service.downcase}:trivy-#{target}"] }
+      tags = images.flat_map { |service, image| ['--set', "#{service}.tags=#{image}"] }
+      sh(*bake, '--pull', '--allow', "fs.read=#{root}",
+         '--set', '*.output=type=docker', '--set', "*.target=#{target}", *tags, *services)
+
+      images.each_value do |image|
+        sh 'docker', 'run', '--rm',
+           '--volume', '/var/run/docker.sock:/var/run/docker.sock',
+           '--volume', 'trivy-cache:/root/.cache/trivy',
+           scanner, 'image', '--image-src', 'docker', '--scanners', 'vuln',
+           '--severity', 'HIGH,CRITICAL', '--ignore-unfixed', '--exit-code', '1',
+           '--table-mode', 'detailed', image
+      end
+    end
+  end
 end
