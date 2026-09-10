@@ -1,17 +1,23 @@
-FROM ruby:3.4.4-slim-bookworm AS base
-RUN apt update && apt install -y --no-install-recommends bash git
-RUN gem install build-labels:0.0.79
+FROM ruby:3.4.10-slim-bookworm AS base
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends bash git jq ca-certificates curl tar
+RUN gem install build-labels:0.0.84
 RUN install-docker-static
 
 WORKDIR /build
-
 COPY . .
 
-CMD ["bash", "-c", "-x", "\
-    env && cd /build/docker && \
-    build-labels -n -c docker-compose.yml changed gitlab set_version to_dockerfiles to_compose | tee bake.yml && \
-    export OTEL_RESOURCE_ATTRIBUTES=service.name=docker-builder,pipeline.id=${CI_PIPELINE_ID},project.name=${CI_PROJECT_NAME} && \
-    export REGISTRY_HOST=$CI_REGISTRY_HOST &&  export BUILDX_BAKE_ENTITLEMENTS_FS=0 && \
-    (grep \"services: {}\" bake.yml || (docker buildx bake -f bake.yml $([ -z \"$CI_SKIP_PUSH\" ] && echo \"--push\") && \
-    ([ \"$CI_BUILD_TARGET\" != \"tests\" ] || (docker compose -f bake.yml down && docker compose -f bake.yml up --force-recreate --abort-on-container-failure )))) \
+CMD ["bash", "-e", "-o", "pipefail", "-c", "\
+    cd /build/docker; \
+    build-labels -n -c docker-compose.yml changed gitlab set_version to_dockerfiles to_compose | tee bake.yml; \
+    export OTEL_RESOURCE_ATTRIBUTES=\"service.name=docker-builder,pipeline.id=${CI_PIPELINE_ID:-},project.name=${CI_PROJECT_NAME:-}\"; \
+    export REGISTRY_HOST=\"${CI_REGISTRY_HOST:-}\" BUILDX_BAKE_ENTITLEMENTS_FS=0; \
+    grep -q '^services: {}$' bake.yml && exit 0; \
+    docker buildx bake -f bake.yml --set '*.output=type=docker' --sbom=false --provenance=false --metadata-file /tmp/bake-metadata.json; \
+    if [ \"${CI_BUILD_TARGET:-}\" = tests ]; then \
+        docker compose -f bake.yml down --remove-orphans; \
+        docker compose -f bake.yml up --force-recreate --no-build --pull never --abort-on-container-failure; \
+    fi; \
+    trivy-runner -f bake.yml --metadata-file /tmp/bake-metadata.json -- --severity HIGH,CRITICAL --ignore-unfixed  --table-mode detailed; \
+    [ -z \"${CI_SKIP_PUSH:-}\" ] || exit 0; \
+    docker compose -f bake.yml push;\
     "]
