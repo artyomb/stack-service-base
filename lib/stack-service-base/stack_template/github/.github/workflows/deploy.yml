@@ -21,7 +21,7 @@ jobs:
       - run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ruby ruby-dev build-essential
-          sudo gem install dry-stack:0.1.54
+          sudo gem install dry-stack:0.1.60
 
       - run: |
           test -n "$DEPLOY_SERVER"
