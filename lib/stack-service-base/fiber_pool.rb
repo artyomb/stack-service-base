@@ -32,7 +32,7 @@ class FiberConnectionPool < Sequel::ConnectionPool
       }
       @stock = []
       @acquired = {}
-      @sp = Async::Semaphore.new opts[:max_connections] || POOL_SIZE
+      @sp = Async::Semaphore.new Integer(opts[:max_connections] || POOL_SIZE)
     end
   end
 
@@ -96,7 +96,7 @@ end
 # Override Sequel::Database to use FiberConnectionPool by default.
 Sequel::Database.prepend(Module.new do
   def connection_pool_default_options
-    @opts[:adapter] == 'postgres' ? {pool_class: FiberConnectionPool} : super
+    %w[postgres postgresql].include?(@opts[:adapter]) ? {pool_class: FiberConnectionPool} : super
   end
 end)
 
