@@ -1,4 +1,4 @@
-FROM ruby:3.4.10-slim-bookworm AS base
+FROM ruby:4.0.7-slim-bookworm AS base
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends build-essential pkg-config libpq-dev curl cmake libssl-dev libyaml-dev \
      && rm -rf /var/lib/apt/lists/*
@@ -12,9 +12,10 @@ COPY Gemfile* /app/
 RUN bundle install --jobs $(nproc) --retry=3 && \
     bundle clean --force && rm -rf /usr/local/bundle/cache/*
 
-# The bundle replaces the vulnerable resolver shipped as a default gem.
-RUN rm -f /usr/local/lib/ruby/3.4.0/resolv.rb \
-    /usr/local/lib/ruby/gems/3.4.0/specifications/default/resolv-0.7.1.gemspec
+# The bundle replaces the vulnerable default JSON gem (CVE-2026-33210).
+RUN rm -rf /usr/local/lib/ruby/4.0.0/json* /usr/local/lib/ruby/4.0.0/*-linux/json \
+    /usr/local/lib/ruby/gems/4.0.0/gems/json-* \
+    /usr/local/lib/ruby/gems/4.0.0/specifications/default/json-*.gemspec
 
 COPY . /app
 
@@ -26,15 +27,16 @@ FROM base AS tests
 # COPY . . required test fixtures
 CMD bundle exec rspec
 
-FROM ruby:3.4.10-slim-bookworm AS deploy
+FROM ruby:4.0.7-slim-bookworm AS deploy
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends bash curl libssl-dev wget libpq-dev libyaml-0-2 \
      && rm -rf /var/lib/apt/lists/*
 
 COPY --from=base /usr/local/bundle /usr/local/bundle
 
-# The bundle replaces the vulnerable resolver shipped as a default gem.
-RUN rm -f /usr/local/lib/ruby/3.4.0/resolv.rb \
-    /usr/local/lib/ruby/gems/3.4.0/specifications/default/resolv-0.7.1.gemspec
+# The bundle replaces the vulnerable default JSON gem (CVE-2026-33210).
+RUN rm -rf /usr/local/lib/ruby/4.0.0/json* /usr/local/lib/ruby/4.0.0/*-linux/json \
+    /usr/local/lib/ruby/gems/4.0.0/gems/json-* \
+    /usr/local/lib/ruby/gems/4.0.0/specifications/default/json-*.gemspec
 
 # Force start & wait test Stage
 # COPY --from=tests /app/src/spec/results /app/src/spec/results

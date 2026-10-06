@@ -3,9 +3,9 @@ stages:
 
 deploy-job:
   stage: deploy
-  image: docker:latest
+  image: docker:29.8.2
   services:
-    - name: docker:dind
+    - name: docker:29.8.2-dind
       alias: docker
   variables:
     DOCKER_HOST: tcp://docker:2375

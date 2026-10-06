@@ -1,7 +1,7 @@
-FROM node:24.18-alpine AS base
+FROM node:24.21.0-alpine AS base
 
 RUN apk upgrade --no-cache \
-    && npm install --global npm@12.0.2 --no-audit --no-fund --no-update-notifier \
+    && npm install --global npm@12.2.0 --no-audit --no-fund --no-update-notifier \
     && npm pkg delete devDependencies --prefix "$(npm root --global)/npm" \
     && npm update --prefix "$(npm root --global)/npm" --omit=dev --ignore-scripts --no-audit --no-fund --no-update-notifier \
     && npm cache clean --force
@@ -20,7 +20,7 @@ FROM base AS build
 
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:1.30.4-alpine AS deploy
+FROM nginxinc/nginx-unprivileged:1.30.5-alpine AS deploy
 
 USER root
 RUN apk upgrade --no-cache \

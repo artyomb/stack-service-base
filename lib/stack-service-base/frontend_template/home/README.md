@@ -7,7 +7,7 @@ infrastructure to the service requirements.
 
 ## Development
 
-Node.js 24 LTS is required for local development.
+Node.js 24.21.0 LTS is required for local development.
 
     cd src
     cp .env.example .env.local

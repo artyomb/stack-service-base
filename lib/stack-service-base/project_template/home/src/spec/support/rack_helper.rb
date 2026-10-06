@@ -33,7 +33,7 @@ RSpec.configure do |config|
       db_url = ENV['TEST_DB_URL']
       if db_url.nil?
         pg_container = Testcontainers::DockerContainer
-                         .new("postgis/postgis:16-3.4")
+                         .new("postgis/postgis:18-3.6")
                          .with_exposed_port(5432)
                          .with_env("POSTGRES_USER", "test")
                          .with_env("POSTGRES_PASSWORD", "test")
