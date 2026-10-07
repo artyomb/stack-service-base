@@ -4,9 +4,9 @@ stages:
 
 .build_block: &build_block
 #  tags: [ build ]
-  image: docker:27.5.1-cli
+  image: docker:29.8.2-cli
   services:
-    - name: docker:27.5.1-dind
+    - name: docker:29.8.2-dind
       alias: docker
   variables:
     DOCKER_HOST: tcp://docker:2375
