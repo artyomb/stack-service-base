@@ -61,7 +61,7 @@ class McpProcessor
   end
 
   def list_tools
-    { tools: registry.list, nextCursor: 'no-more' }
+    { tools: registry.list }
   end
 
   def root_response
