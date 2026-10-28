@@ -1,4 +1,4 @@
-FROM ruby:4.0.7-slim-bookworm AS base
+FROM ruby:4.0.9-slim-bookworm AS base
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends build-essential pkg-config libpq-dev curl cmake libssl-dev libyaml-dev \
      && rm -rf /var/lib/apt/lists/*
@@ -27,7 +27,7 @@ FROM base AS tests
 # COPY . . required test fixtures
 CMD bundle exec rspec
 
-FROM ruby:4.0.7-slim-bookworm AS deploy
+FROM ruby:4.0.9-slim-bookworm AS deploy
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends bash curl libssl-dev wget libpq-dev libyaml-0-2 \
      && rm -rf /var/lib/apt/lists/*
 
