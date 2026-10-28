@@ -1,6 +1,6 @@
-FROM ruby:4.0.7-slim-bookworm AS base
+FROM ruby:4.0.9-slim-bookworm AS base
 RUN apt update && apt install -y --no-install-recommends openssh-client ca-certificates
-RUN gem install build-labels:0.0.85 dry-stack:0.1.60
+RUN gem install build-labels:0.0.85 dry-stack:0.1.62
 RUN install-docker-static # 29
 
 WORKDIR /build
